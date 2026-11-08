@@ -2,22 +2,74 @@
   "label": "o²",
   "role": "MetaParadox genesis signer",
   "curve": "secp256k1",
-  "pubkey": "03b9ebfc410c5a7ed85541a2001af744ee8019a7322a13c1082237c71b65adb0c9",
-  "message": "Congratulations o² · Satoshi Genesis has started · MetaParadox · 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f · node 1 o² 03b9ebfc410c5a7ed85541a2001af744ee8019a7322a13c1082237c71b65adb0c9 · node 2 RSA sha256:2a2fabbee0b0863b580261b7115609823d9d3f7487b76a52015a9d59bef6bea5",
+  "pubkey": "039063f32bfe91c9b8399ce5524c527978ddb58d6f86d30eb821b0ef10aa48d871",
+  "message": "Congratulations o² · Satoshi Genesis has started · MetaParadox · 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
   "hash": "SHA-256",
   "signature": {
-    "r": "4ee8da4c6e04a79fc793b701b25adb22b77c1d90d167950e5e54297f8b0b05bd",
-    "s": "0ef68aa4c797a7ab13446f646a56702f1a85f4314bb9352ccf9bb59f4713719a"
+    "r": "5d92e17ad026cb32f796cb91da69c7c9137ed328188e434d2552de1cecf2c4e3",
+    "s": "6f8149760657f55d053f353839da4dc353ad4c53eb1f2957701b0750a441012a"
   },
-  "pinnedAt": "2026-11-08T23:45:11.779Z",
-  "nodes": {
-    "1": {
-      "type": "o² secp256k1",
-      "pubkey": "03b9ebfc410c5a7ed85541a2001af744ee8019a7322a13c1082237c71b65adb0c9"
-    },
-    "2": {
-      "type": "RSA-3072",
-      "fingerprint": "sha256:2a2fabbee0b0863b580261b7115609823d9d3f7487b76a52015a9d59bef6bea5"
-    }
+  "pinnedAt": "2026-10-27T14:08:27.455Z",
+  "chainFingerprint": {
+    "shortId": "b129a22e",
+    "type": "Public key",
+    "related": [
+      {
+        "label": "Bitcoin P2WPKH (native SegWit)",
+        "value": "bc1qky56yt3mq0mtelld4seks05ltlqntvuy2ce85g"
+      },
+      {
+        "label": "Bitcoin P2TR (Taproot, BIP86 key path)",
+        "value": "bc1pvngrwh46gegv305e3ntrk0xezsfs5s2xchww5p7709qmf4dljw8s67t2ev"
+      },
+      {
+        "label": "Bitcoin P2SH-P2WPKH (nested SegWit)",
+        "value": "3Q977X26hVrABBcdAqefuieikdqKRgAwF8"
+      },
+      {
+        "label": "Bitcoin P2PKH (compressed key)",
+        "value": "1H9kUhgvWWD7P73j8T6UUDbrhUDpXFM7Fw"
+      },
+      {
+        "label": "Bitcoin P2PKH (uncompressed key)",
+        "value": "19tooQyXJBX1u7uoLFDsSZZZFzCz1S7jzh"
+      },
+      {
+        "label": "Ethereum / EVM",
+        "value": "0xd4fe163A7b01B44a18ad750255933CBFeD48705E"
+      },
+      {
+        "label": "Tron",
+        "value": "TVPQdzLtCwFUbZmSFkhartzN7VnQgWAZi2"
+      },
+      {
+        "label": "Bitcoin Cash",
+        "value": "bitcoincash:qzcjng3w8vpld08lakkrx6p7na0uzddnss4qe88f2h"
+      },
+      {
+        "label": "Litecoin P2WPKH",
+        "value": "ltc1qky56yt3mq0mtelld4seks05ltlqntvuywyrrvc"
+      },
+      {
+        "label": "Litecoin P2PKH",
+        "value": "LbNhjuzkbATAdujtJb5mkEfcugb6boQCpC"
+      },
+      {
+        "label": "Dogecoin P2PKH",
+        "value": "DMHr1xdZov7Pv7EKs3631ymTabx7nCxQyv"
+      },
+      {
+        "label": "Zcash t1",
+        "value": "t1a2MV374Upzhyk6d4subc2hmx8QuGdUSqJ"
+      },
+      {
+        "label": "XRP Ledger",
+        "value": "rH9k76gvWWDfPfsj3Ta77Dbi67DFXEMfEA"
+      },
+      {
+        "label": "Cosmos Hub",
+        "value": "cosmos1ky56yt3mq0mtelld4seks05ltlqntvuyuz8vs9"
+      }
+    ]
   }
 }
