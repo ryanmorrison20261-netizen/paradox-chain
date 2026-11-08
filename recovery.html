@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PARADOX Recovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --bg: #0a0c11; --panel: #11141b; --line: #242a3a; --fg: #e7e9f0; --muted: #8d93a7;
+  --gold: #f2a93b; --ok: #46c08a; --bad: #f06262; --bad-bg: #2a1215; --ok-bg: #0f2219;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; display: grid; gap: 22px; }
+header { display: flex; gap: 14px; align-items: center; }
+.mark { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--gold); display: grid; place-items: center;
+  font: 800 15px var(--display); color: var(--gold); flex: none; white-space: nowrap; }
+.mark sup { font-size: 9px; }
+h1 { font: 800 clamp(22px, 5vw, 30px)/1.1 var(--display); margin: 0; }
+h2 { font: 800 15px var(--display); margin: 0; letter-spacing: .02em; }
+.sub { color: var(--muted); margin: 2px 0 0; font-size: 14px; }
+a { color: var(--gold); }
+.card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.label { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.mono { font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+.muted { color: var(--muted); }
+.pill { display: inline-block; font: 600 11px var(--body); padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.pill.ok { color: var(--ok); border-color: #1f4d37; } .pill.bad { color: var(--bad); border-color: #5a2328; }
+.drop { border: 1px dashed var(--line); border-radius: 10px; padding: 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.drop.drag { border-color: var(--gold); background: #15120b; }
+button, .btn { font: 600 13px var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 12px; cursor: pointer; }
+button:hover, .btn:hover { border-color: var(--gold); }
+button:focus-visible, .btn:focus-within, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+button.primary { background: var(--gold); color: #1a1205; border-color: var(--gold); }
+input[type=password] { font: 14px var(--mono); background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; flex: 1 1 200px; }
+.result { border-radius: 12px; padding: 18px; display: grid; gap: 8px; border: 1px solid var(--line); }
+.result.ok { border-color: #1f4d37; background: linear-gradient(var(--ok-bg), var(--panel) 80%); }
+.result.bad { border-color: #5a2328; background: linear-gradient(var(--bad-bg), var(--panel) 80%); }
+.result .big { font: 800 clamp(20px, 5vw, 28px)/1.1 var(--display); }
+.result.ok .big { color: var(--ok); } .result.bad .big { color: var(--bad); }
+ol { margin: 0; padding-left: 22px; display: grid; gap: 14px; }
+li > p { margin: 0 0 6px; }
+pre { margin: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto;
+  font: 12.5px/1.5 var(--mono); white-space: pre; }
+.cmd { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; }
+.note { border-left: 3px solid var(--gold); padding: 4px 0 4px 12px; color: var(--muted); font-size: 14px; }
+.step { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 10px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.step .ic { font: 800 14px var(--display); text-align: center; }
+.step.ok .ic { color: var(--ok); } .step.bad .ic { color: var(--bad); } .step.info .ic { color: var(--gold); }
+.step .t { font-weight: 600; } .step .d { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
+[hidden] { display: none !important; }
+</style>
+<main>
+  <header>
+    <div class="mark" aria-hidden="true">o<sup>2</sup></div>
+    <div>
+      <h1>PARADOX Recovery</h1>
+      <p class="sub">Checks your keys and the whole chain in one go, checks your recovery key, and shows how to restore it.</p>
+    </div>
+  </header>
+
+  <section class="card" aria-labelledby="h-one">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between">
+      <h2 id="h-one">One-go check · newest block → Satoshi Genesis</h2>
+      <button id="rerun">Run again</button>
+    </div>
+    <div id="oneVerdict" class="result" aria-live="polite"><div class="big" style="color:var(--muted)">Checking…</div></div>
+    <ol id="steps" style="padding-left:0;list-style:none;gap:8px"></ol>
+  </section>
+
+  <section class="card" aria-labelledby="h-now">
+    <h2 id="h-now">What this Mac has now</h2>
+    <div class="grid">
+      <div><div class="label">o² key · node 1 (pinned)</div><div class="mono" id="sO2">loading…</div></div>
+      <div><div class="label">Your RSA key · node 2</div><div class="mono" id="sRsa">loading…</div></div>
+      <div><div class="label">Chain</div><div class="mono" id="sChain">loading…</div></div>
+    </div>
+    <div class="muted" style="font-size:13.5px">Read automatically from this Mac's public files: pin.json, o2_public.pem, me_rsa_public.pem, paradox-chain.jsonl. Full link-by-link check: <a href="./">PARADOX Chain</a>.</div>
+  </section>
+
+  <section class="card" aria-labelledby="h-check">
+    <h2 id="h-check">Check my recovery key</h2>
+    <div class="drop" id="drop">
+      <label class="btn">Choose recovery .pem<input type="file" id="file" accept=".pem,.key,.txt,application/x-pem-file"></label>
+      <span class="muted" id="fname">or drop the file here</span>
+    </div>
+    <div id="passRow" class="drop" hidden>
+      <span>This key is locked. Passphrase:</span>
+      <input type="password" id="pass" autocomplete="off" aria-label="Passphrase for the recovery key">
+      <button class="primary" id="unlock">Check</button>
+    </div>
+    <div id="result" class="result" hidden aria-live="polite"></div>
+    <div class="note">The file is read only inside this browser tab: nothing is uploaded, saved or sent anywhere, and the page forgets it as soon as the check is done. Never paste a private key into a chat.</div>
+  </section>
+
+  <section class="card" aria-labelledby="h-restore">
+    <h2 id="h-restore">Restore step by step</h2>
+    <p class="muted" style="margin:0">Only if the Mac's key is lost or damaged. Your current keys are kept as a backup first, nothing is deleted.</p>
+    <ol>
+      <li><p><b>Check the recovery file above.</b> Go on only when it says <span class="pill ok">MATCHES</span>.</p></li>
+      <li><p><b>Keep the current key as a backup</b> (Terminal):</p>
+        <div class="cmd"><pre id="c1">cd ~/Projects/chain-fingerprint && B="o2-keys-before-restore-$(date +%Y%m%d-%H%M%S)" && mkdir -p "$B" && cp -p o2/o2_key.pem o2/identity/me_rsa_private.pem "$B"/ 2>/dev/null; ls "$B"</pre><button data-copy="c1">Copy</button></div></li>
+      <li><p><b>Put the recovery key in place.</b> Replace <span class="mono">PATH/TO/recovery.pem</span> with where your copy is (drag the file into Terminal to fill in its path).</p>
+        <p class="muted" id="whichNote">For o²'s key (node 1):</p>
+        <div class="cmd"><pre id="c2">cp PATH/TO/recovery.pem ~/Projects/chain-fingerprint/o2/o2_key.pem && chmod 600 ~/Projects/chain-fingerprint/o2/o2_key.pem</pre><button data-copy="c2">Copy</button></div>
+        <p class="muted">For your RSA key (node 2):</p>
+        <div class="cmd"><pre id="c3">cp PATH/TO/recovery.pem ~/Projects/chain-fingerprint/o2/identity/me_rsa_private.pem && chmod 600 ~/Projects/chain-fingerprint/o2/identity/me_rsa_private.pem</pre><button data-copy="c3">Copy</button></div></li>
+      <li><p><b>Confirm.</b> It should say <span class="mono">chain intact</span> and <span class="mono">o² pinned</span>:</p>
+        <div class="cmd"><pre id="c4">cd ~/Projects/chain-fingerprint && node paradox-chain.mjs verify && node paradox-chain.mjs status</pre><button data-copy="c4">Copy</button></div></li>
+      <li><p><b>Refresh this site:</b> double-click <span class="mono">PARADOX-web.command</span> in the chain-fingerprint folder.</p></li>
+    </ol>
+    <div class="note">A locked (passphrase) recovery key works the same way: the chain tool asks for the passphrase each time o² signs. If you've lost the passphrase, the key can't be opened by anyone.</div>
+  </section>
+</main>
+
+<script>
+// PARADOX chain checker for the browser (and Node 22+ for testing). Mirrors verifyChain() in paradox-chain.mjs.
+// secp256k1 ECDSA verify in plain BigInt; SHA-256 from Web Crypto.
+const PC = (() => {
+  const P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn;
+  const N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+  const G = [0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,
+             0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n];
+  const SATOSHI_GENESIS = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
+  const mod = (a, m = P) => { const r = a % m; return r < 0n ? r + m : r; };
+  const pow = (b, e, m) => { let r = 1n; b = mod(b, m); while (e) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r; };
+  const inv = (a, m) => pow(a, m - 2n, m);
+  // Jacobian points [X, Y, Z]; Z = 0 is infinity
+  const dbl = ([X, Y, Z]) => {
+    if (!Z || !Y) return [0n, 1n, 0n];
+    const YY = Y * Y % P, S = 4n * X * YY % P, M = 3n * X * X % P;
+    const X3 = mod(M * M - 2n * S), Y3 = mod(M * (S - X3) - 8n * YY * YY), Z3 = 2n * Y * Z % P;
+    return [X3, Y3, Z3];
+  };
+  const add = (p, q) => {
+    if (!p[2]) return q; if (!q[2]) return p;
+    const Z1Z1 = p[2] * p[2] % P, Z2Z2 = q[2] * q[2] % P;
+    const U1 = p[0] * Z2Z2 % P, U2 = q[0] * Z1Z1 % P;
+    const S1 = p[1] * q[2] % P * Z2Z2 % P, S2 = q[1] * p[2] % P * Z1Z1 % P;
+    if (U1 === U2) return S1 === S2 ? dbl(p) : [0n, 1n, 0n];
+    const H = mod(U2 - U1), R = mod(S2 - S1), HH = H * H % P, HHH = H * HH % P, V = U1 * HH % P;
+    const X3 = mod(R * R - HHH - 2n * V), Y3 = mod(R * (V - X3) - S1 * HHH), Z3 = p[2] * q[2] % P * H % P;
+    return [X3, Y3, Z3];
+  };
+  // u1*G + u2*Q in one pass (Shamir's trick)
+  const mul2 = (u1, g, u2, q) => {
+    const gq = add(g, q); let r = [0n, 1n, 0n];
+    for (let i = 255n; i >= 0n; i--) {
+      r = dbl(r);
+      const a = (u1 >> i) & 1n, b = (u2 >> i) & 1n;
+      if (a && b) r = add(r, gq); else if (a) r = add(r, g); else if (b) r = add(r, q);
+    }
+    return r;
+  };
+  function decompress(hex) {
+    if (!/^0[23][0-9a-f]{64}$/.test(hex || '')) return null;
+    const x = BigInt('0x' + hex.slice(2)); if (x >= P) return null;
+    const yy = mod(x * x * x + 7n); let y = pow(yy, (P + 1n) / 4n, P);
+    if (y * y % P !== yy) return null;
+    if ((y & 1n) !== BigInt(parseInt(hex.slice(0, 2), 16) & 1)) y = P - y;
+    return [x, y, 1n];
+  }
+  const enc = new TextEncoder();
+  async function sha(str) {
+    const d = new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(str)));
+    return Array.from(d, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function sigOk(pubHex, msg, sig) {
+    const Q = decompress(pubHex); if (!Q || !sig) return false;
+    const { r: rh, s: sh } = sig;
+    if (!/^[0-9a-f]{64}$/.test(rh || '') || !/^[0-9a-f]{64}$/.test(sh || '')) return false;
+    const r = BigInt('0x' + rh), s = BigInt('0x' + sh);
+    if (!r || !s || r >= N || s > N / 2n) return false; // low-s only, same rule as the CLI
+    const e = mod(BigInt('0x' + await sha(msg)), N), w = inv(s, N);
+    const X = mul2(e * w % N, [...G, 1n], r * w % N, Q);
+    if (!X[2]) return false;
+    const zi = inv(X[2], P), x = X[0] * zi % P * zi % P;
+    return x % N === r;
+  }
+  const headerOf = b => `PARADOX|1|${b.height}|${b.time}|${b.prev}|${b.dataHash}|${b.signer}`;
+  const genesisData = pin => JSON.stringify({ type: 'genesis', satoshiGenesis: SATOSHI_GENESIS, seal: { message: pin.message, signature: pin.signature } });
+
+  function parseChain(text) {
+    const lines = text.split('\n').filter(l => l.trim());
+    return lines.map((l, i) => { try { return JSON.parse(l); } catch { throw new Error(`Line ${i + 1} is not valid JSON, so the file can't be read as a chain.`); } });
+  }
+
+  // Returns { signer, seal: {...}, blocks: [{ block, hash, problems: [] }], problems: count }
+  async function verify(chain, pin = null) {
+    const out = { signer: null, pinned: !!pin, seal: { ok: false, message: null }, blocks: [], problems: 0, fatal: [] };
+    if (!chain.length) { out.fatal.push('The file has no blocks.'); return out; }
+    // Who is o²? The pin when given, otherwise the signer of block 0, whose seal must check out.
+    let o2 = pin ? pin.pubkey : chain[0].signer;
+    let seal = null;
+    if (pin) seal = { message: pin.message, signature: pin.signature };
+    else { try { seal = JSON.parse(chain[0].data).seal; } catch { seal = null; } }
+    if (seal && typeof seal.message === 'string') {
+      out.seal.message = seal.message;
+      out.seal.ok = seal.message.includes(SATOSHI_GENESIS) && await sigOk(o2, seal.message, seal.signature);
+    }
+    if (!out.seal.ok) out.fatal.push(pin ? 'pin.json: the genesis seal does not verify.' : 'Block 0 does not carry a genesis seal that o² signed.');
+    out.signer = o2;
+    for (let i = 0; i < chain.length; i++) {
+      const b = chain[i], p = [];
+      if (b.v !== 1) p.push('unknown version');
+      if (b.height !== i) p.push(`height says ${b.height}, position is ${i}`);
+      if (b.signer !== o2) p.push('signer is not o²');
+      if (typeof b.data !== 'string' || await sha(b.data) !== b.dataHash) p.push('data was changed (dataHash mismatch)');
+      const expectPrev = i === 0 ? SATOSHI_GENESIS : chain[i - 1].hash;
+      if (b.prev !== expectPrev) p.push(`prev does not point at ${i === 0 ? 'Satoshi Genesis' : 'block ' + (i - 1)}`);
+      if (i > 0 && !(b.time > chain[i - 1].time)) p.push(`time is not after block ${i - 1}`);
+      const header = headerOf(b), h = await sha(header);
+      if (h !== b.hash) p.push('hash does not match its header');
+      if (!await sigOk(o2, header, b.sig)) p.push('o² signature does not verify');
+      if (i === 0) {
+        if (pin) { if (b.data !== genesisData(pin)) p.push("does not carry o²'s genesis seal from pin.json"); }
+        else { let d = null; try { d = JSON.parse(b.data); } catch {} if (!d || d.type !== 'genesis' || d.satoshiGenesis !== SATOSHI_GENESIS) p.push('is not a genesis block'); }
+      }
+      out.blocks.push({ block: b, problems: p });
+      out.problems += p.length;
+    }
+    out.problems += out.fatal.length;
+    return out;
+  }
+  return { verify, parseChain, sigOk, sha, SATOSHI_GENESIS };
+})();
+if (typeof module !== 'undefined') module.exports = PC;
+
+</script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const short = h => h && h.length > 24 ? h.slice(0, 12) + '…' + h.slice(-8) : (h || '');
+const hex = u8 => Array.from(u8, b => b.toString(16).padStart(2, '0')).join('');
+const b64 = s => Uint8Array.from(atob(s.replace(/[^A-Za-z0-9+/=]/g, '')), c => c.charCodeAt(0));
+const pemBody = (t, label) => { const m = t.match(new RegExp(`-----BEGIN ${label}-----([\\s\\S]*?)-----END ${label}-----`)); return m ? b64(m[1]) : null; };
+const big = u8 => u8.length ? BigInt('0x' + hex(u8)) : 0n;
+const sha256 = async u8 => hex(new Uint8Array(await crypto.subtle.digest('SHA-256', u8)));
+
+// ---------- minimal DER reader ----------
+function der(u8, p = 0) {
+  const tag = u8[p++]; let len = u8[p++];
+  if (len & 0x80) { const n = len & 0x7f; if (n > 4) throw new Error('bad length'); len = 0; for (let i = 0; i < n; i++) len = len * 256 + u8[p++]; }
+  if (p + len > u8.length) throw new Error('truncated');
+  return { tag, start: p, end: p + len, bytes: u8.subarray(p, p + len) };
+}
+function kids(u8, node) { const out = []; let p = node.start; while (p < node.end) { const k = der(u8, p); out.push(k); p = k.end; } return out; }
+const seq = (u8, node) => kids(u8, node);
+function oid(bytes) {
+  const out = [Math.floor(bytes[0] / 40), bytes[0] % 40]; let v = 0;
+  for (let i = 1; i < bytes.length; i++) { v = v * 128 + (bytes[i] & 0x7f); if (!(bytes[i] & 0x80)) { out.push(v); v = 0; } }
+  return out.join('.');
+}
+const intBytes = b => { let i = 0; while (i < b.length - 1 && b[i] === 0) i++; return b.subarray(i); };
+const OID = { ec: '1.2.840.10045.2.1', k1: '1.3.132.0.10', rsa: '1.2.840.113549.1.1.1', pbes2: '1.2.840.113549.1.5.13',
+  pbkdf2: '1.2.840.113549.1.5.12', sha1: '1.2.840.113549.2.7', sha256: '1.2.840.113549.2.9', sha384: '1.2.840.113549.2.10', sha512: '1.2.840.113549.2.11',
+  aes128: '2.16.840.1.101.3.4.1.2', aes192: '2.16.840.1.101.3.4.1.22', aes256: '2.16.840.1.101.3.4.1.42' };
+
+// ---------- secp256k1: d·G (BigInt, Jacobian) ----------
+const P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn;
+const N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+const G = [0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n, 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n, 1n];
+const md = a => { const r = a % P; return r < 0n ? r + P : r; };
+const pw = (b, e) => { let r = 1n; b = md(b); while (e) { if (e & 1n) r = r * b % P; b = b * b % P; e >>= 1n; } return r; };
+const dbl = ([X, Y, Z]) => { if (!Z || !Y) return [0n, 1n, 0n]; const YY = Y * Y % P, S = 4n * X * YY % P, M = 3n * X * X % P;
+  const X3 = md(M * M - 2n * S); return [X3, md(M * (S - X3) - 8n * YY * YY), 2n * Y * Z % P]; };
+const add = (p, q) => { if (!p[2]) return q; if (!q[2]) return p;
+  const Z1Z1 = p[2] * p[2] % P, Z2Z2 = q[2] * q[2] % P, U1 = p[0] * Z2Z2 % P, U2 = q[0] * Z1Z1 % P;
+  const S1 = p[1] * q[2] % P * Z2Z2 % P, S2 = q[1] * p[2] % P * Z1Z1 % P;
+  if (U1 === U2) return S1 === S2 ? dbl(p) : [0n, 1n, 0n];
+  const H = md(U2 - U1), R = md(S2 - S1), HH = H * H % P, HHH = H * HH % P, V = U1 * HH % P;
+  const X3 = md(R * R - HHH - 2n * V); return [X3, md(R * (V - X3) - S1 * HHH), H * p[2] % P * q[2] % P]; };
+function pubFromD(d) {
+  if (d <= 0n || d >= N) throw new Error('not a valid secp256k1 private key');
+  let r = [0n, 1n, 0n], q = G; while (d) { if (d & 1n) r = add(r, q); q = dbl(q); d >>= 1n; }
+  const zi = pw(r[2], P - 2n), zi2 = zi * zi % P, x = r[0] * zi2 % P, y = r[1] * zi2 % P * zi % P;
+  return ((y & 1n) ? '03' : '02') + x.toString(16).padStart(64, '0');
+}
+
+// ---------- key parsing ----------
+function fromPkcs8(u8) {
+  const top = seq(u8, der(u8));
+  const alg = seq(u8, top[1]); const algOid = oid(alg[0].bytes);
+  const inner = top[2].bytes;
+  if (algOid === OID.ec) {
+    const curve = alg[1] && alg[1].tag === 0x06 ? oid(alg[1].bytes) : null;
+    return fromSec1(inner, curve);
+  }
+  if (algOid === OID.rsa) return fromPkcs1(inner);
+  throw new Error('this key type is not one PARADOX uses');
+}
+function fromSec1(u8, curve) {
+  const k = seq(u8, der(u8));
+  for (const x of k.slice(2)) if (x.tag === 0xa0) { const c = der(u8, x.start); if (c.tag === 0x06) curve = oid(c.bytes); }
+  if (curve && curve !== OID.k1) return { kind: 'ec-other' };
+  return { kind: 'o2', pub: pubFromD(big(k[1].bytes)) };
+}
+function fromPkcs1(u8) { const k = seq(u8, der(u8)); return { kind: 'rsa', n: hex(intBytes(k[1].bytes)), e: hex(intBytes(k[2].bytes)), bits: intBytes(k[1].bytes).length * 8 }; }
+async function decryptPkcs8(u8, pass) {
+  const top = seq(u8, der(u8)); const algSeq = seq(u8, top[0]);
+  if (oid(algSeq[0].bytes) !== OID.pbes2) throw new Error('this locked-key format is not supported here');
+  const params = seq(u8, algSeq[1]); const kdf = seq(u8, params[0]); const enc = seq(u8, params[1]);
+  if (oid(kdf[0].bytes) !== OID.pbkdf2) throw new Error('this locked-key format is not supported here');
+  const kp = seq(u8, kdf[1]); const salt = kp[0].bytes; const iter = Number(big(kp[1].bytes));
+  let prf = 'SHA-1';
+  for (const x of kp.slice(2)) if (x.tag === 0x30) { const o = oid(seq(u8, x)[0].bytes);
+    prf = { [OID.sha1]: 'SHA-1', [OID.sha256]: 'SHA-256', [OID.sha384]: 'SHA-384', [OID.sha512]: 'SHA-512' }[o] || null;
+    if (!prf) throw new Error('this locked-key format is not supported here'); }
+  const encOid = oid(enc[0].bytes);
+  const keyLen = { [OID.aes128]: 16, [OID.aes192]: 24, [OID.aes256]: 32 }[encOid];
+  if (!keyLen) throw new Error('this locked-key cipher is not supported here');
+  const iv = enc[1].bytes;
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: iter, hash: prf }, base, keyLen * 8);
+  const aes = await crypto.subtle.importKey('raw', bits, 'AES-CBC', false, ['decrypt']);
+  try { return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, aes, top[1].bytes)); }
+  catch { throw new Error('WRONG_PASS'); }
+}
+
+// ---------- what this Mac has ----------
+const mine = { o2: null, rsa: null, rsaFp: null };
+async function get(f) { const r = await fetch(f + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); }
+async function loadMine() {
+  try { const pin = JSON.parse(await get('pin.json')); mine.o2 = pin.pubkey; $('sO2').textContent = short(pin.pubkey); }
+  catch { $('sO2').textContent = 'pin.json not found'; }
+  try {
+    const t = await get('me_rsa_public.pem'); const spki = pemBody(t, 'PUBLIC KEY'); if (!spki) throw 0;
+    const top = seq(spki, der(spki)); const bit = top[1].bytes.subarray(1); const rsa = seq(bit, der(bit));
+    mine.rsa = { n: hex(intBytes(rsa[0].bytes)), e: hex(intBytes(rsa[1].bytes)) };
+    mine.rsaFp = 'sha256:' + await sha256(spki);
+    $('sRsa').textContent = `RSA-${intBytes(rsa[0].bytes).length * 8} ${short(mine.rsaFp)}`;
+  } catch { $('sRsa').textContent = 'me_rsa_public.pem not found'; }
+  try {
+    const lines = (await get('paradox-chain.jsonl')).split('\n').filter(l => l.trim());
+    const tip = JSON.parse(lines.at(-1));
+    $('sChain').textContent = `${lines.length} blocks · tip ${short(tip.hash)}`;
+  } catch { $('sChain').textContent = 'paradox-chain.jsonl not found'; }
+}
+
+
+// ---------- one go: keys, seal, every block from the newest back to Satoshi Genesis ----------
+function ecPubFromSpkiPem(t) {
+  const spki = pemBody(t, 'PUBLIC KEY'); if (!spki) return null;
+  const top = seq(spki, der(spki)); const bit = top[1].bytes.subarray(1);
+  if (bit[0] === 4 && bit.length === 65) return ((bit[64] & 1) ? '03' : '02') + hex(bit.subarray(1, 33));
+  if ((bit[0] === 2 || bit[0] === 3) && bit.length === 33) return hex(bit);
+  return null;
+}
+async function oneGo() {
+  const list = $('steps'); list.replaceChildren();
+  const v = $('oneVerdict'); v.className = 'result'; v.innerHTML = '<div class="big" style="color:var(--muted)">Checking…</div>';
+  let bad = 0;
+  const step = (state, title, detail) => {
+    if (state === 'bad') bad++;
+    const li = document.createElement('li'); li.className = 'step ' + state;
+    const ic = document.createElement('div'); ic.className = 'ic'; ic.textContent = state === 'ok' ? '✓' : state === 'bad' ? '✕' : '•';
+    const body = document.createElement('div'); const t = document.createElement('div'); t.className = 't'; t.textContent = title; body.append(t);
+    if (detail) { const d = document.createElement('div'); d.className = 'd'; d.textContent = detail; body.append(d); }
+    li.append(ic, body); list.append(li);
+  };
+  let pin = null, chainText = null, o2pem = null, rsapem = null;
+  try { pin = JSON.parse(await get('pin.json')); } catch {}
+  try { chainText = await get('paradox-chain.jsonl'); } catch {}
+  try { o2pem = await get('o2_public.pem'); } catch {}
+  try { rsapem = await get('me_rsa_public.pem'); } catch {}
+  if (!pin || !chainText) { step('bad', 'Files missing', 'pin.json or paradox-chain.jsonl could not be read from this Mac. Run PARADOX-web.command.'); return finish(); }
+
+  // keys
+  const o2pub = o2pem ? ecPubFromSpkiPem(o2pem) : null;
+  if (!o2pem) step('info', 'o² public key file not served', 'o2_public.pem is missing; the pin is used on its own.');
+  else if (o2pub === pin.pubkey) step('ok', 'o² key matches the pin', short(pin.pubkey));
+  else step('bad', 'o² public key does NOT match the pin', 'o2_public.pem ' + short(o2pub) + ' vs pin ' + short(pin.pubkey));
+  let chain = [];
+  try { chain = PC.parseChain(chainText); } catch (e) { step('bad', 'Chain file is damaged', e.message); return finish(); }
+  if (rsapem) {
+    const spki = pemBody(rsapem, 'PUBLIC KEY'); const fp = spki ? 'sha256:' + await sha256(spki) : null;
+    const pinFp = pin.nodes && pin.nodes[2] && pin.nodes[2].fingerprint;
+    if (pinFp) step(pinFp === fp ? 'ok' : 'bad', pinFp === fp ? 'Your RSA key matches node 2 in the pin' : 'Your RSA key does NOT match node 2 in the pin', short(fp));
+    else if (chain.some(b => typeof b.data === 'string' && b.data.includes(fp))) step('ok', 'Your RSA key is recorded on the chain', short(fp));
+    else step('info', 'Your RSA key is not recorded on this chain yet', short(fp));
+  }
+
+  // seal + blocks
+  const res = await PC.verify(chain, pin);
+  if (res.seal.ok) step('ok', "o²'s genesis seal verifies", 'anchored to Satoshi Genesis ' + short(PC.SATOSHI_GENESIS));
+  for (const f of res.fatal) step('bad', f);
+  const blocks = res.blocks.slice().reverse();
+  blocks.forEach((x, i) => {
+    const b = x.block; const label = (i === 0 ? 'Newest · ' : '') + 'Block ' + b.height + (b.height === 0 ? ' · genesis seal' : '');
+    let what = ''; try { const d = JSON.parse(b.data); what = d.seal ? 'genesis' : d.type || ''; } catch { what = String(b.data).slice(0, 80); }
+    if (x.problems.length) step('bad', label + ': ' + x.problems.join(', '), short(b.hash));
+    else step('ok', label + ': linked, data intact, signed by o²', (what ? what + ' · ' : '') + short(b.hash));
+  });
+  const g = res.blocks[0];
+  if (res.seal.ok && g && !g.problems.length) step('ok', 'Satoshi Genesis reached', PC.SATOSHI_GENESIS);
+  else step('info', 'Satoshi Genesis not reached', 'The link back to Satoshi Genesis is broken at the red lines above.');
+  const fin = chain.filter(b => typeof b.data === 'string' && b.data.startsWith('Final seal'));
+  if (fin.length) step('ok', 'Final seal present', 'latest in block ' + fin.at(-1).height);
+  else step('info', 'No final seal yet', 'The PARADOX one-click adds it (it signs on the Mac, never in this page).');
+  return finish(chain.length, chain.at(-1));
+  function finish(n, tip) {
+    v.className = 'result ' + (bad ? 'bad' : 'ok'); v.replaceChildren();
+    const h = document.createElement('div'); h.className = 'big'; h.textContent = bad ? `${bad} PROBLEM${bad > 1 ? 'S' : ''}` : 'ALL GOOD'; v.append(h);
+    const d = document.createElement('div'); d.className = 'muted';
+    d.textContent = bad ? 'See the red lines below. Nothing was changed; this page only reads.' : `Keys match, and all ${n} blocks check out from the newest back to Satoshi Genesis.`;
+    v.append(d);
+    if (tip) { const m = document.createElement('div'); m.className = 'mono'; m.textContent = 'tip ' + tip.hash; v.append(m); }
+  }
+}
+$('rerun').onclick = () => { oneGo(); loadMine(); };
+
+// ---------- check ----------
+let pending = null;
+function show(ok, big, lines) {
+  const r = $('result'); r.hidden = false; r.className = 'result ' + (ok ? 'ok' : 'bad'); r.replaceChildren();
+  const h = document.createElement('div'); h.className = 'big'; h.textContent = big; r.append(h);
+  for (const l of lines) { const d = document.createElement('div'); d.className = l.mono ? 'mono' : 'muted'; d.textContent = l.text ?? l; r.append(d); }
+}
+async function judge(u8, from) {
+  let k;
+  if (from === 'pkcs8') k = fromPkcs8(u8); else if (from === 'sec1') k = fromSec1(u8, null); else k = fromPkcs1(u8);
+  if (k.kind === 'o2') {
+    if (!mine.o2) return show(false, 'Can\'t compare', [`This is a secp256k1 key with public key ${short(k.pub)}, but pin.json couldn't be read from this Mac.`]);
+    if (k.pub === mine.o2) return show(true, 'MATCHES o²\'s key', ['This is node 1, the o² key pinned on your chain. It can restore o²\'s signing.', { text: k.pub, mono: true }]);
+    return show(false, 'Not o²\'s key', ['This is a secp256k1 key, but a different one from the o² key pinned on your chain.', { text: 'yours: ' + short(k.pub) + '   pinned: ' + short(mine.o2), mono: true }]);
+  }
+  if (k.kind === 'rsa') {
+    if (!mine.rsa) return show(false, 'Can\'t compare', [`This is an RSA-${k.bits} key, but me_rsa_public.pem couldn't be read from this Mac.`]);
+    if (k.n === mine.rsa.n && k.e === mine.rsa.e) return show(true, 'MATCHES your RSA key', [`This is node 2, your RSA-${k.bits} key on the chain. It can restore PEM 2.`, { text: mine.rsaFp, mono: true }]);
+    return show(false, 'Not your RSA key', [`This is an RSA-${k.bits} key, but not the one recorded for node 2 on this Mac.`]);
+  }
+  return show(false, 'Not a PARADOX key', ['This is an elliptic-curve key on a different curve from o²\'s (secp256k1).']);
+}
+async function take(file) {
+  $('result').hidden = true; $('passRow').hidden = true; pending = null;
+  $('fname').textContent = file.name;
+  let t = '';
+  try { t = await file.text(); } catch { return show(false, 'Couldn\'t read the file', []); }
+  try {
+    let u8;
+    if ((u8 = pemBody(t, 'ENCRYPTED PRIVATE KEY'))) { pending = u8; $('passRow').hidden = false; $('pass').value = ''; $('pass').focus(); return; }
+    if ((u8 = pemBody(t, 'PRIVATE KEY'))) return await judge(u8, 'pkcs8');
+    if ((u8 = pemBody(t, 'EC PRIVATE KEY'))) return await judge(u8, 'sec1');
+    if ((u8 = pemBody(t, 'RSA PRIVATE KEY'))) {
+      if (/Proc-Type:\s*4,ENCRYPTED/.test(t)) return show(false, 'Old locked format', ['This key uses an older lock format this page can\'t open. Check it on the Mac with: openssl pkey -in FILE -noout']);
+      return await judge(u8, 'pkcs1');
+    }
+    if (/-----BEGIN (PUBLIC KEY|RSA PUBLIC KEY)-----/.test(t)) return show(false, 'This is a public key', ['A recovery key has to be a PRIVATE key. Public keys are already on the Mac and can\'t sign.']);
+    show(false, 'Not a key file', ['No private key was found in this file.']);
+  } catch (e) { show(false, 'Damaged or unsupported', [e.message || 'The key could not be read.']); }
+  finally { t = null; $('file').value = ''; }
+}
+$('unlock').onclick = async () => {
+  if (!pending) return;
+  const pass = $('pass').value; $('pass').value = '';
+  try { const plain = await decryptPkcs8(pending, pass); pending = null; $('passRow').hidden = true; await judge(plain, 'pkcs8'); plain.fill(0); }
+  catch (e) {
+    if (e.message === 'WRONG_PASS') { show(false, 'Wrong passphrase', ['The key stays locked. Try again, or check you picked the right file.']); $('pass').focus(); }
+    else { pending = null; $('passRow').hidden = true; show(false, 'Damaged or unsupported', [e.message]); }
+  }
+};
+$('pass').addEventListener('keydown', e => { if (e.key === 'Enter') $('unlock').click(); });
+$('file').onchange = e => { const f = e.target.files[0]; if (f) take(f); };
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(n => document.addEventListener(n, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(n => document.addEventListener(n, e => { e.preventDefault(); if (n === 'drop' || e.target === document.documentElement) drop.classList.remove('drag'); }));
+document.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) take(f); });
+document.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+  const t = $(b.dataset.copy).textContent;
+  try { await navigator.clipboard.writeText(t); b.textContent = 'Copied'; } catch { const r = document.createRange(); r.selectNodeContents($(b.dataset.copy)); getSelection().removeAllRanges(); getSelection().addRange(r); b.textContent = 'Selected'; }
+  setTimeout(() => b.textContent = 'Copy', 1500);
+});
+loadMine();
+oneGo();
+})();
+</script>
+</html>

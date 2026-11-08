@@ -1,0 +1,369 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PARADOX Chain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column. Verdict first, then the chain drawn top-down from Satoshi Genesis, each block hanging off a gold link line.
+   Deliberately single dark look, matching the o² genesis page. */
+:root {
+  --bg: #0a0c11; --panel: #11141b; --line: #242a3a; --fg: #e7e9f0; --muted: #8d93a7;
+  --gold: #f2a93b; --gold-dim: #6b4c1c; --ok: #46c08a; --bad: #f06262; --bad-bg: #2a1215; --ok-bg: #0f2219;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px; }
+header { display: flex; gap: 14px; align-items: center; }
+.mark { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--gold); display: grid; place-items: center;
+  font: 800 15px var(--display); color: var(--gold); flex: none; }
+.mark { white-space: nowrap; }
+.mark sup { font-size: 9px; }
+h1 { font: 800 clamp(22px, 5vw, 30px)/1.1 var(--display); margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 2px 0 0; font-size: 14px; }
+.mono { font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+.label { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+
+.load { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px; border: 1px dashed var(--line); border-radius: 10px; }
+.load.drag { border-color: var(--gold); background: #15120b; }
+.load .src { flex: 1 1 220px; min-width: 0; color: var(--muted); font-size: 13.5px; }
+.load .src b { color: var(--fg); font-weight: 600; }
+button, .btn { font: 600 13px var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 13px; cursor: pointer; }
+button:hover, .btn:hover { border-color: var(--gold); }
+button:focus-visible, .btn:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.btn { position: relative; display: inline-block; }
+button.primary { background: var(--gold); color: #1a1205; border-color: var(--gold); }
+
+.verdict { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 20px; display: grid; gap: 16px; }
+.verdict.ok { border-color: #1f4d37; background: linear-gradient(var(--ok-bg), var(--panel) 70%); }
+.verdict.bad { border-color: #5a2328; background: linear-gradient(var(--bad-bg), var(--panel) 70%); }
+.vhead { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; }
+.status { font: 800 clamp(28px, 7vw, 42px)/1 var(--display); letter-spacing: .02em; }
+.ok .status { color: var(--ok); } .bad .status { color: var(--bad); } .wait .status { color: var(--muted); }
+.vline { color: var(--muted); flex: 1 1 260px; min-width: 0; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 20px; }
+.facts > div { min-width: 0; display: grid; gap: 3px; align-content: start; }
+.facts .val { font-variant-numeric: tabular-nums; }
+.fatal { color: var(--bad); margin: 0; padding-left: 18px; }
+.tip { display: flex; gap: 8px; align-items: flex-start; }
+.tip .mono { flex: 1; min-width: 0; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+.chain { display: grid; }
+.node { display: grid; grid-template-columns: 54px minmax(0, 1fr); }
+.rail { position: relative; display: flex; justify-content: center; }
+.rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--gold-dim); }
+.node:last-child .rail::before { bottom: auto; height: 26px; }
+.anchor .rail::before { top: 14px; }
+.rail.broken::before { background: repeating-linear-gradient(var(--bad) 0 6px, transparent 6px 11px); }
+.dot { position: relative; margin-top: 14px; width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 2px solid var(--gold);
+  display: grid; place-items: center; font: 600 10px var(--mono); color: var(--gold); }
+.node.bad .dot { border-color: var(--bad); color: var(--bad); }
+.anchor .dot { background: var(--gold); color: #1a1205; }
+.card { margin-block: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); display: grid; gap: 8px; min-width: 0; }
+.node.bad .card { border-color: #5a2328; }
+.anchor .card { background: transparent; border-style: dashed; }
+.ctop { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.ctop h3 { font: 500 14px var(--display); margin: 0; }
+.ctop time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.pill { font: 600 11px var(--body); letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+.pill.y { color: var(--ok); border-color: #1f4d37; } .pill.n { color: var(--bad); border-color: #5a2328; }
+.data { white-space: pre-wrap; overflow-wrap: anywhere; }
+.kv { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 2px 10px; color: var(--muted); }
+.kv .mono { color: var(--fg); opacity: .8; }
+.probs { margin: 0; padding-left: 18px; color: var(--bad); font-size: 13.5px; }
+footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; max-width: 68ch; }
+footer p { margin: 0; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .2s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark" aria-hidden="true">o<sup>2</sup></div>
+    <div>
+      <h1>PARADOX Chain</h1>
+      <p class="sub">Checks every link and every o² signature right here in your browser. The file never leaves this page.</p>
+    </div>
+  </header>
+
+  <section class="load" id="load" aria-label="Load a chain">
+    <label class="btn"><input id="fileChain" type="file" accept=".jsonl,.json,.txt">Open paradox-chain.jsonl</label>
+    <label class="btn"><input id="filePin" type="file" accept=".json">Add pin.json</label>
+    <div class="src" id="src"></div>
+  </section>
+
+  <section class="verdict wait" id="verdict" aria-live="polite">
+    <div class="vhead"><div class="status" id="status">Checking…</div><div class="vline" id="vline"></div></div>
+    <ul class="fatal" id="fatal" hidden></ul>
+    <div class="facts">
+      <div><span class="label">Blocks</span><span class="val" id="fBlocks">–</span></div>
+      <div><span class="label">Anchored to</span><span class="val">Satoshi Genesis<br><span class="mono" style="color:var(--muted)">000000000019d6…8ce26f</span></span></div>
+      <div><span class="label">o² key</span><span class="val"><span class="mono" id="fKey">–</span><br><span id="fKeyNote" class="note"></span></span></div>
+    </div>
+    <div style="display:grid;gap:4px">
+      <span class="label">Tip (newest block hash)</span>
+      <div class="tip"><span class="mono" id="fTip">–</span><button id="copyTip" type="button">Copy</button></div>
+      <p class="note">Keep a copy of the tip somewhere else. It is how you would notice if someone deleted the newest blocks, which no chain can detect on its own.</p>
+    </div>
+    <div class="actions">
+      <button id="tamper" type="button">Tamper test: change one letter</button>
+      <button id="undo" type="button" class="primary" hidden>Undo the change</button>
+      <span class="note" id="tamperNote"></span>
+    </div>
+  </section>
+
+  <section class="chain" id="chain" aria-label="Blocks"></section>
+
+  <footer>
+    <p>Each block's hash covers its height, time, the previous block's hash, its data and its signer. o² signs that hash with her secp256k1 key. Block 0 points at Bitcoin's genesis block and carries o²'s genesis seal.</p>
+    <p>This is a signed, tamper-evident record kept on your Mac with one signer. It is not a network blockchain: there are no other nodes, no mining and no coins.</p>
+  </footer>
+</div>
+
+<script>
+// PARADOX chain checker for the browser (and Node 22+ for testing). Mirrors verifyChain() in paradox-chain.mjs.
+// secp256k1 ECDSA verify in plain BigInt; SHA-256 from Web Crypto.
+const PC = (() => {
+  const P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn;
+  const N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+  const G = [0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,
+             0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n];
+  const SATOSHI_GENESIS = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
+  const mod = (a, m = P) => { const r = a % m; return r < 0n ? r + m : r; };
+  const pow = (b, e, m) => { let r = 1n; b = mod(b, m); while (e) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r; };
+  const inv = (a, m) => pow(a, m - 2n, m);
+  // Jacobian points [X, Y, Z]; Z = 0 is infinity
+  const dbl = ([X, Y, Z]) => {
+    if (!Z || !Y) return [0n, 1n, 0n];
+    const YY = Y * Y % P, S = 4n * X * YY % P, M = 3n * X * X % P;
+    const X3 = mod(M * M - 2n * S), Y3 = mod(M * (S - X3) - 8n * YY * YY), Z3 = 2n * Y * Z % P;
+    return [X3, Y3, Z3];
+  };
+  const add = (p, q) => {
+    if (!p[2]) return q; if (!q[2]) return p;
+    const Z1Z1 = p[2] * p[2] % P, Z2Z2 = q[2] * q[2] % P;
+    const U1 = p[0] * Z2Z2 % P, U2 = q[0] * Z1Z1 % P;
+    const S1 = p[1] * q[2] % P * Z2Z2 % P, S2 = q[1] * p[2] % P * Z1Z1 % P;
+    if (U1 === U2) return S1 === S2 ? dbl(p) : [0n, 1n, 0n];
+    const H = mod(U2 - U1), R = mod(S2 - S1), HH = H * H % P, HHH = H * HH % P, V = U1 * HH % P;
+    const X3 = mod(R * R - HHH - 2n * V), Y3 = mod(R * (V - X3) - S1 * HHH), Z3 = p[2] * q[2] % P * H % P;
+    return [X3, Y3, Z3];
+  };
+  // u1*G + u2*Q in one pass (Shamir's trick)
+  const mul2 = (u1, g, u2, q) => {
+    const gq = add(g, q); let r = [0n, 1n, 0n];
+    for (let i = 255n; i >= 0n; i--) {
+      r = dbl(r);
+      const a = (u1 >> i) & 1n, b = (u2 >> i) & 1n;
+      if (a && b) r = add(r, gq); else if (a) r = add(r, g); else if (b) r = add(r, q);
+    }
+    return r;
+  };
+  function decompress(hex) {
+    if (!/^0[23][0-9a-f]{64}$/.test(hex || '')) return null;
+    const x = BigInt('0x' + hex.slice(2)); if (x >= P) return null;
+    const yy = mod(x * x * x + 7n); let y = pow(yy, (P + 1n) / 4n, P);
+    if (y * y % P !== yy) return null;
+    if ((y & 1n) !== BigInt(parseInt(hex.slice(0, 2), 16) & 1)) y = P - y;
+    return [x, y, 1n];
+  }
+  const enc = new TextEncoder();
+  async function sha(str) {
+    const d = new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(str)));
+    return Array.from(d, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function sigOk(pubHex, msg, sig) {
+    const Q = decompress(pubHex); if (!Q || !sig) return false;
+    const { r: rh, s: sh } = sig;
+    if (!/^[0-9a-f]{64}$/.test(rh || '') || !/^[0-9a-f]{64}$/.test(sh || '')) return false;
+    const r = BigInt('0x' + rh), s = BigInt('0x' + sh);
+    if (!r || !s || r >= N || s > N / 2n) return false; // low-s only, same rule as the CLI
+    const e = mod(BigInt('0x' + await sha(msg)), N), w = inv(s, N);
+    const X = mul2(e * w % N, [...G, 1n], r * w % N, Q);
+    if (!X[2]) return false;
+    const zi = inv(X[2], P), x = X[0] * zi % P * zi % P;
+    return x % N === r;
+  }
+  const headerOf = b => `PARADOX|1|${b.height}|${b.time}|${b.prev}|${b.dataHash}|${b.signer}`;
+  const genesisData = pin => JSON.stringify({ type: 'genesis', satoshiGenesis: SATOSHI_GENESIS, seal: { message: pin.message, signature: pin.signature } });
+
+  function parseChain(text) {
+    const lines = text.split('\n').filter(l => l.trim());
+    return lines.map((l, i) => { try { return JSON.parse(l); } catch { throw new Error(`Line ${i + 1} is not valid JSON, so the file can't be read as a chain.`); } });
+  }
+
+  // Returns { signer, seal: {...}, blocks: [{ block, hash, problems: [] }], problems: count }
+  async function verify(chain, pin = null) {
+    const out = { signer: null, pinned: !!pin, seal: { ok: false, message: null }, blocks: [], problems: 0, fatal: [] };
+    if (!chain.length) { out.fatal.push('The file has no blocks.'); return out; }
+    // Who is o²? The pin when given, otherwise the signer of block 0, whose seal must check out.
+    let o2 = pin ? pin.pubkey : chain[0].signer;
+    let seal = null;
+    if (pin) seal = { message: pin.message, signature: pin.signature };
+    else { try { seal = JSON.parse(chain[0].data).seal; } catch { seal = null; } }
+    if (seal && typeof seal.message === 'string') {
+      out.seal.message = seal.message;
+      out.seal.ok = seal.message.includes(SATOSHI_GENESIS) && await sigOk(o2, seal.message, seal.signature);
+    }
+    if (!out.seal.ok) out.fatal.push(pin ? 'pin.json: the genesis seal does not verify.' : 'Block 0 does not carry a genesis seal that o² signed.');
+    out.signer = o2;
+    for (let i = 0; i < chain.length; i++) {
+      const b = chain[i], p = [];
+      if (b.v !== 1) p.push('unknown version');
+      if (b.height !== i) p.push(`height says ${b.height}, position is ${i}`);
+      if (b.signer !== o2) p.push('signer is not o²');
+      if (typeof b.data !== 'string' || await sha(b.data) !== b.dataHash) p.push('data was changed (dataHash mismatch)');
+      const expectPrev = i === 0 ? SATOSHI_GENESIS : chain[i - 1].hash;
+      if (b.prev !== expectPrev) p.push(`prev does not point at ${i === 0 ? 'Satoshi Genesis' : 'block ' + (i - 1)}`);
+      if (i > 0 && !(b.time > chain[i - 1].time)) p.push(`time is not after block ${i - 1}`);
+      const header = headerOf(b), h = await sha(header);
+      if (h !== b.hash) p.push('hash does not match its header');
+      if (!await sigOk(o2, header, b.sig)) p.push('o² signature does not verify');
+      if (i === 0) {
+        if (pin) { if (b.data !== genesisData(pin)) p.push("does not carry o²'s genesis seal from pin.json"); }
+        else { let d = null; try { d = JSON.parse(b.data); } catch {} if (!d || d.type !== 'genesis' || d.satoshiGenesis !== SATOSHI_GENESIS) p.push('is not a genesis block'); }
+      }
+      out.blocks.push({ block: b, problems: p });
+      out.problems += p.length;
+    }
+    out.problems += out.fatal.length;
+    return out;
+  }
+  return { verify, parseChain, sigOk, sha, SATOSHI_GENESIS };
+})();
+if (typeof module !== 'undefined') module.exports = PC;
+
+const SAMPLE = "{\"v\":1,\"height\":0,\"time\":\"2026-10-27T14:08:27.455Z\",\"prev\":\"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\",\"data\":\"{\\\"type\\\":\\\"genesis\\\",\\\"satoshiGenesis\\\":\\\"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\\\",\\\"seal\\\":{\\\"message\\\":\\\"Congratulations o² · Satoshi Genesis has started · MetaParadox · 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f\\\",\\\"signature\\\":{\\\"r\\\":\\\"5d92e17ad026cb32f796cb91da69c7c9137ed328188e434d2552de1cecf2c4e3\\\",\\\"s\\\":\\\"6f8149760657f55d053f353839da4dc353ad4c53eb1f2957701b0750a441012a\\\"}}}\",\"dataHash\":\"b649e69164a69e7fdd449238812e2924476e903b57e2800132ff6a687c0b2ae2\",\"signer\":\"039063f32bfe91c9b8399ce5524c527978ddb58d6f86d30eb821b0ef10aa48d871\",\"hash\":\"91d28a564e220391acce23634fda7a4030ec78e347795830ff2de2be9363d6aa\",\"sig\":{\"r\":\"79a6e33877766cddee7eb5954fa845b0767cdcfb2634d13a1b4316c593bea312\",\"s\":\"390e42fc5b090b7eb1e983570f4016f625250914f890000f39c9c888dca19a5f\"}}\n{\"v\":1,\"height\":1,\"time\":\"2026-10-27T14:08:27.489Z\",\"prev\":\"91d28a564e220391acce23634fda7a4030ec78e347795830ff2de2be9363d6aa\",\"data\":\"o² opens the PARADOX chain · MetaParadox is live\",\"dataHash\":\"9f217974ac2a55f2f8651c8a3a9d62dc0f4c410d5f01395cf0b1c78ddc07e7b4\",\"signer\":\"039063f32bfe91c9b8399ce5524c527978ddb58d6f86d30eb821b0ef10aa48d871\",\"hash\":\"af9143ba3c79059744b63ef71400a63c1e19081ba38f1e225a38a2bdfa99bb6c\",\"sig\":{\"r\":\"fac93fc6ff5668e538b88e1dbb06b68d6a575da299ad486c895e74fe2682e894\",\"s\":\"3778cdfb7fa4569dec7b80b0a61063224d7a94b8250419be56f7bd33da60b491\"}}\n";
+const SAMPLE_PIN = {"label":"o²","role":"MetaParadox genesis signer","curve":"secp256k1","pubkey":"039063f32bfe91c9b8399ce5524c527978ddb58d6f86d30eb821b0ef10aa48d871","message":"Congratulations o² · Satoshi Genesis has started · MetaParadox · 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f","hash":"SHA-256","signature":{"r":"5d92e17ad026cb32f796cb91da69c7c9137ed328188e434d2552de1cecf2c4e3","s":"6f8149760657f55d053f353839da4dc353ad4c53eb1f2957701b0750a441012a"},"pinnedAt":"2026-10-27T13:00:19.327Z","chainFingerprint":{"shortId":"b129a22e","type":"Public key","related":[{"label":"Bitcoin P2WPKH (native SegWit)","value":"bc1qky56yt3mq0mtelld4seks05ltlqntvuy2ce85g"},{"label":"Bitcoin P2TR (Taproot, BIP86 key path)","value":"bc1pvngrwh46gegv305e3ntrk0xezsfs5s2xchww5p7709qmf4dljw8s67t2ev"},{"label":"Bitcoin P2SH-P2WPKH (nested SegWit)","value":"3Q977X26hVrABBcdAqefuieikdqKRgAwF8"},{"label":"Bitcoin P2PKH (compressed key)","value":"1H9kUhgvWWD7P73j8T6UUDbrhUDpXFM7Fw"},{"label":"Bitcoin P2PKH (uncompressed key)","value":"19tooQyXJBX1u7uoLFDsSZZZFzCz1S7jzh"},{"label":"Ethereum / EVM","value":"0xd4fe163A7b01B44a18ad750255933CBFeD48705E"},{"label":"Tron","value":"TVPQdzLtCwFUbZmSFkhartzN7VnQgWAZi2"},{"label":"Bitcoin Cash","value":"bitcoincash:qzcjng3w8vpld08lakkrx6p7na0uzddnss4qe88f2h"},{"label":"Litecoin P2WPKH","value":"ltc1qky56yt3mq0mtelld4seks05ltlqntvuywyrrvc"},{"label":"Litecoin P2PKH","value":"LbNhjuzkbATAdujtJb5mkEfcugb6boQCpC"},{"label":"Dogecoin P2PKH","value":"DMHr1xdZov7Pv7EKs3631ymTabx7nCxQyv"},{"label":"Zcash t1","value":"t1a2MV374Upzhyk6d4subc2hmx8QuGdUSqJ"},{"label":"XRP Ledger","value":"rH9k76gvWWDfPfsj3Ta77Dbi67DFXEMfEA"},{"label":"Cosmos Hub","value":"cosmos1ky56yt3mq0mtelld4seks05ltlqntvuyuz8vs9"}]}};
+const $ = id => document.getElementById(id);
+let state = { text: SAMPLE, name: null, pin: SAMPLE_PIN, pinName: 'o² pin', original: null };
+
+const fmtTime = t => { const d = new Date(t); return isNaN(d) ? String(t) : d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'medium' }); };
+const short = h => typeof h === 'string' && h.length > 20 ? h.slice(0, 10) + '…' + h.slice(-8) : String(h ?? '');
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === 'class' ? e.className = v : e.setAttribute(k, v);
+  for (const k of kids) if (k != null) e.append(k);
+  return e;
+}
+function describeData(b) {
+  if (b.height === 0) {
+    try { const d = JSON.parse(b.data); return el('div', { class: 'data' }, d.seal?.message ?? b.data); } catch { return el('div', { class: 'data' }, String(b.data)); }
+  }
+  try {
+    const d = JSON.parse(b.data);
+    if (d && d.type === 'file') return el('div', { class: 'data' }, `File ${d.name} · ${Number(d.bytes).toLocaleString()} bytes`, el('div', { class: 'mono', style: 'color:var(--muted)' }, 'sha256 ' + d.sha256));
+  } catch {}
+  return el('div', { class: 'data' }, String(b.data));
+}
+
+async function run() {
+  const v = $('verdict'), chainEl = $('chain');
+  $('src').innerHTML = '';
+  $('src').append(state.name ? el('span', {}, 'Chain: ', el('b', {}, state.name)) : el('span', {}, el('b', {}, 'Your MetaParadox chain'), ' as of 27 Oct 2026. Open a newer paradox-chain.jsonl to check the latest.'),
+    state.pinName ? el('span', {}, ' · Pin: ', el('b', {}, state.pinName)) : '');
+  let chain, res;
+  try { chain = PC.parseChain(state.text); res = await PC.verify(chain, state.pin); }
+  catch (e) { chain = []; res = { blocks: [], problems: 1, fatal: [e.message], signer: null }; }
+  const ok = res.problems === 0;
+  v.className = 'verdict ' + (ok ? 'ok' : 'bad');
+  $('status').textContent = ok ? 'INTACT' : 'BROKEN';
+  const badBlocks = res.blocks.filter(x => x.problems.length).length;
+  $('vline').textContent = ok
+    ? `${chain.length} block${chain.length === 1 ? '' : 's'}, every link back to Satoshi Genesis holds and every block is signed by o².`
+    : `${res.problems} problem${res.problems === 1 ? '' : 's'}${badBlocks ? ` across ${badBlocks} block${badBlocks === 1 ? '' : 's'}` : ''}. The marked blocks below show what fails.`;
+  $('fatal').hidden = !res.fatal.length; $('fatal').replaceChildren(...res.fatal.map(f => el('li', {}, f)));
+  $('fBlocks').textContent = chain.length;
+  $('fKey').textContent = res.signer ? short(res.signer) : '–';
+  $('fKeyNote').textContent = state.pin ? 'Matches pin.json' : 'Taken from block 0. Add pin.json to confirm it is your o².';
+  $('fTip').textContent = chain.length ? chain.at(-1).hash : '–';
+
+  const nodes = [el('div', { class: 'node anchor' },
+    el('div', { class: 'rail' }, el('div', { class: 'dot' }, '₿')),
+    el('div', { class: 'card' }, el('div', { class: 'ctop' }, el('h3', {}, 'Satoshi Genesis'), el('time', {}, '3 Jan 2009')),
+      el('div', { class: 'mono', style: 'color:var(--muted)' }, PC.SATOSHI_GENESIS)))];
+  res.blocks.forEach(({ block: b, problems }, i) => {
+    const has = s => problems.some(p => p.includes(s));
+    const linkOk = !has('prev') && !has('height') && !has('time is not');
+    const dataOk = !has('data was changed') && !has('hash does not match') && !has('genesis');
+    const sigOk = !has('signature') && !has('signer');
+    nodes.push(el('div', { class: 'node' + (problems.length ? ' bad' : '') },
+      el('div', { class: 'rail' + (linkOk ? '' : ' broken') }, el('div', { class: 'dot' }, String(i))),
+      el('div', { class: 'card' },
+        el('div', { class: 'ctop' }, el('h3', {}, i === 0 ? 'Block 0 · genesis seal' : `Block ${i}`), el('time', {}, fmtTime(b.time)),
+          el('div', { class: 'pills' },
+            el('span', { class: 'pill ' + (linkOk ? 'y' : 'n') }, linkOk ? 'linked' : 'link broken'),
+            el('span', { class: 'pill ' + (dataOk ? 'y' : 'n') }, dataOk ? 'data intact' : 'data changed'),
+            el('span', { class: 'pill ' + (sigOk ? 'y' : 'n') }, sigOk ? 'signed by o²' : 'bad signature'))),
+        describeData(b),
+        el('div', { class: 'kv' }, el('span', {}, 'hash'), el('span', { class: 'mono' }, String(b.hash)), el('span', {}, 'prev'), el('span', { class: 'mono' }, String(b.prev))),
+        problems.length ? el('ul', { class: 'probs' }, ...problems.map(p => el('li', {}, p))) : null)));
+  });
+  chainEl.replaceChildren(...nodes);
+  $('tamper').hidden = !!state.original || chain.length < 2;
+  $('undo').hidden = !state.original;
+  $('tamperNote').textContent = state.original ? 'One letter in the last block was changed in this page only. Your file is untouched.' : '';
+}
+
+function tamper() {
+  const lines = state.text.split('\n').filter(l => l.trim());
+  const b = JSON.parse(lines.at(-1));
+  const s = String(b.data); const j = Math.max(0, s.search(/[a-z]/i));
+  const ch = s[j] === 'x' ? 'y' : 'x';
+  b.data = s.slice(0, j) + ch + s.slice(j + 1);
+  lines[lines.length - 1] = JSON.stringify(b);
+  state.original = state.text; state.text = lines.join('\n') + '\n'; run();
+}
+$('tamper').onclick = tamper;
+$('undo').onclick = () => { state.text = state.original; state.original = null; run(); };
+$('copyTip').onclick = async () => {
+  const t = $('fTip').textContent;
+  try { await navigator.clipboard.writeText(t); $('copyTip').textContent = 'Copied'; }
+  catch { const r = document.createRange(); r.selectNodeContents($('fTip')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('copyTip').textContent = 'Selected'; }
+  setTimeout(() => $('copyTip').textContent = 'Copy', 1500);
+};
+
+function isPinText(t) { try { const j = JSON.parse(t); return j && typeof j.pubkey === 'string' && j.signature && typeof j.message === 'string'; } catch { return false; } }
+function looksSecret(t) { return /PRIVATE KEY|"ct"\s*:|"kdf"\s*:|\b(xprv|tprv)[1-9A-HJ-NP-Za-km-z]{20,}/.test(t); }
+async function take(file) {
+  const t = await file.text();
+  if (looksSecret(t)) { $('src').textContent = `${file.name} looks like a key file. This page only needs paradox-chain.jsonl and pin.json, so it was not read.`; return; }
+  if (isPinText(t)) { state.pin = JSON.parse(t); state.pinName = file.name; }
+  else { state.text = t; state.name = file.name; state.original = null; }
+  run();
+}
+$('fileChain').onchange = e => { const f = e.target.files[0]; if (f) take(f); e.target.value = ''; };
+$('filePin').onchange = e => { const f = e.target.files[0]; if (f) take(f); e.target.value = ''; };
+const zone = $('load');
+['dragenter', 'dragover'].forEach(n => document.addEventListener(n, e => { e.preventDefault(); zone.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(n => document.addEventListener(n, e => { e.preventDefault(); if (n === 'drop' || e.target === document.documentElement) zone.classList.remove('drag'); }));
+document.addEventListener('drop', e => { for (const f of e.dataTransfer?.files || []) take(f); });
+document.addEventListener('paste', e => {
+  const t = e.clipboardData?.getData('text'); if (!t || !t.trim()) return;
+  if (looksSecret(t)) { $('src').textContent = 'What you pasted looks like a key, so it was not read.'; return; }
+  if (isPinText(t)) { state.pin = JSON.parse(t); state.pinName = 'pasted pin'; } else { state.text = t; state.name = 'pasted chain'; state.original = null; }
+  run();
+});
+(async () => {
+  if (!/^https?:$/.test(location.protocol)) return run();
+  try {
+    const get = async f => { const r = await fetch(f + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); };
+    const [c, p] = await Promise.all([get('paradox-chain.jsonl'), get('pin.json')]);
+    if (looksSecret(c) || looksSecret(p)) throw new Error('a served file looks like a key');
+    state.text = c; state.name = 'paradox-chain.jsonl · live from this Mac'; state.original = null;
+    state.pin = JSON.parse(p); state.pinName = 'pin.json · live';
+  } catch (e) { console.warn('PARADOX: live chain not loaded, showing the built-in copy:', e.message); }
+  run();
+})();
+</script>
