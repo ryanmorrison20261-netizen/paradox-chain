@@ -99,6 +99,8 @@ footer p { margin: 0; }
     </div>
   </header>
 
+  <p class="note" id="names">PARADOX GENESIS is the project. PARADOX is its sealed record. Satoshi Ruble (SRUB) is the token, and it is not deployed on any public network.</p>
+
   <section class="load" id="load" aria-label="Load a chain">
     <label class="btn"><input id="fileChain" type="file" accept=".jsonl,.json,.txt">Open paradox-chain.jsonl</label>
     <label class="btn"><input id="filePin" type="file" accept=".json">Add pin.json</label>
@@ -131,6 +133,7 @@ footer p { margin: 0; }
   <footer>
     <p>Each block's hash covers its height, time, the previous block's hash, its data and its signer. o² signs that hash with her secp256k1 key. Block 0 points at Bitcoin's genesis block and carries o²'s genesis seal.</p>
     <p>This is a signed, tamper-evident record kept on your Mac with one signer. It is not a network blockchain: there are no other nodes, no mining and no coins.</p>
+    <p>Timestamp: <code>paradox-chain.jsonl.ots</code> anchors these exact bytes in Bitcoin blocks 975116, 975121 and 975126, so the file existed at or before those blocks. <code>ots verify paradox-chain.jsonl.ots</code> checks it against a Bitcoin node.</p>
   </footer>
 </div>
 

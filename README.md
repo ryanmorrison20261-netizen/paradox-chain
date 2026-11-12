@@ -6,6 +6,9 @@ baseline: 3 blocks, hash-linked back to Satoshi Genesis, every block signed by o
 Only public material is in this repository. **No private key is present or has ever been
 present here.**
 
+Names, stated once: **PARADOX GENESIS** is the project. **PARADOX** is its sealed record.
+**Satoshi Ruble (SRUB)** is the token, and it is not deployed on any public network.
+
 ## What is in here
 
 | File | What it is |
@@ -66,8 +69,15 @@ timestamp anchor constant, not to any coin issuance.
 submitted to `bob.btc.calendar.opentimestamps.org`, `btc.calendar.catallaxy.com` and
 `finney.calendar.eternitywall.com`.
 
-Status: **PendingAttestation** — the calendars hold the digest but it is not yet committed
-inside a Bitcoin block.
+Status: **confirmed**. The digest is committed inside Bitcoin block **975116**, and also
+975121 and 975126. Block 975116's merkle root is
+
+```
+a719433d8aab25469a2cbeaddeb52b9f65db5a9f38998aa404227191c6e0743c
+```
+
+The proof stores that root in little-endian byte order, so a naive comparison fails; reverse
+the bytes before comparing.
 
 ```
 curl -O https://raw.githubusercontent.com/ryanmorrison20261-netizen/paradox-chain/main/paradox-chain.jsonl
@@ -77,8 +87,9 @@ ots upgrade paradox-chain.jsonl.ots
 ots verify  paradox-chain.jsonl.ots
 ```
 
-Once `ots verify` reports a Bitcoin block, the file's existence at or before that block is
-proven by Bitcoin's proof-of-work — verifiable by anyone, trusting no server. Do not edit
+`ots verify` needs a Bitcoin node to fetch headers; without one it reports a connection
+refusal, not a bad proof. Either way, the file's existence at or before block 975116 is proven
+by Bitcoin's proof-of-work — verifiable by anyone, trusting no server. Do not edit
 `paradox-chain.jsonl`: the proof is bound to its exact bytes.
 
 A separate, already-confirmed proof covers an earlier 4-ledger **tipset**
