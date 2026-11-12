@@ -1,0 +1,20 @@
+{
+ "files": [
+  {
+   "file": "2_pizza_only.json",
+   "label": "Pizza tx"
+  },
+  {
+   "file": "1_three_tx_bundle.json",
+   "label": "3-tx test"
+  },
+  {
+   "file": "3_TAMPERED_amount_should_fail.json",
+   "label": "TAMPERED amount"
+  },
+  {
+   "file": "4_TAMPERED_chain_should_fail.json",
+   "label": "TAMPERED chain"
+  }
+ ]
+}

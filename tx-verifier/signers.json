@@ -1,0 +1,18 @@
+{
+  "threshold": 2,
+  "signers": [
+    {
+      "name": "alice",
+      "pubkey_pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECTcTXruscxc4dQTC1UkOH7/GJ7ck\nPhnAcUCWFr4v6vpKHvBu5Migg3QsTQa4yr4eEgcudOeuN5PSv0XnR+A4Jw==\n-----END PUBLIC KEY-----\n"
+    },
+    {
+      "name": "bob",
+      "pubkey_pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE546L3IdGma6UjsgUQhEnP9GE+lG5\nupGthVVK7yjRzhVzJiOqqKRIZE4VVZiLWK7+Lvjn4OzQgQhGs+aSQa49GA==\n-----END PUBLIC KEY-----\n"
+    },
+    {
+      "name": "carol",
+      "pubkey_pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWKIvCAyOHchkqFVVhXL23sBA25WX\nUqMP9HiO88VKvShWLa95PYgGKAqHICG5NQesv1mcHeJwIDp+YVWES9cBZQ==\n-----END PUBLIC KEY-----\n"
+    }
+  ],
+  "demo": true
+}

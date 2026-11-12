@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bitcoin Tx Auto-Verifier</title>
+<meta name="description" content="Type a txid or address: pulls, cross-checks, cryptographically verifies, timestamps and multisig-signs a Bitcoin transaction proof. Runs in your browser.">
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --text:#e7e9ee; --muted:#9aa1ad; --ok:#2fbf71; --bad:#e5484d; --warn:#f5a524; --accent:#4c8dff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:20px 16px 48px; }
+  h1 { font-size:20px; margin:0 0 4px; } h3 { font-size:15px; margin:22px 0 6px; }
+  .sub, .step { color:var(--muted); font-size:13px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:12px 0 4px; }
+  input, select { width:100%; padding:11px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); font:13px ui-monospace, Menlo, monospace; }
+  .row { display:grid; grid-template-columns:1fr 1fr 90px; gap:8px; }
+  button, .btn { display:block; margin-top:14px; width:100%; padding:12px; border:0; border-radius:8px; background:var(--accent); color:#fff; font-size:15px; font-weight:600; cursor:pointer; text-align:center; }
+  .btn2 { background:transparent; border:1px solid var(--accent); color:var(--accent); font-size:14px; padding:10px; margin-top:8px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  button:disabled { opacity:.6; }
+  .pick { display:grid; grid-template-columns:90px 1fr auto; gap:8px; background:var(--card); border:1px solid var(--line); color:var(--text); font-weight:400; font-size:13px; text-align:left; margin-top:6px; padding:9px 10px; }
+  .verdict { margin-top:16px; padding:14px 16px; border-radius:10px; font-weight:700; font-size:18px; }
+  .v-ok { background:rgba(47,191,113,.15); border:1px solid var(--ok); color:var(--ok); }
+  .v-part { background:rgba(76,141,255,.12); border:1px solid var(--accent); color:var(--accent); }
+  .v-warn { background:rgba(245,165,36,.12); border:1px solid var(--warn); color:var(--warn); }
+  .v-bad { background:rgba(229,72,77,.12); border:1px solid var(--bad); color:var(--bad); }
+  .verdict ul { margin:8px 0 0; padding-left:18px; font-weight:400; font-size:14px; color:var(--text); }
+  .card { margin-top:12px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card h2 { font-size:13px; margin:0 0 8px; color:var(--muted); font-weight:600; }
+  .check { display:flex; gap:8px; padding:5px 0; border-top:1px solid var(--line); font-size:14px; }
+  .ic { width:18px; flex:none; text-align:center; font-weight:700; }
+  .pass .ic { color:var(--ok); } .fail .ic { color:var(--bad); } .skip .ic, .info .ic { color:var(--muted); }
+  .mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; word-break:break-all; }
+  table { width:100%; border-collapse:collapse; } td { padding:6px 0; border-top:1px solid var(--line); vertical-align:top; }
+  td.v { text-align:right; white-space:nowrap; padding-left:10px; } tr.hit td { color:var(--ok); }
+  #log { margin-top:10px; }
+  .follow { display:inline; width:auto; margin:0; padding:2px 7px; font:12px ui-monospace, Menlo, monospace; background:transparent; border:1px solid var(--line); color:var(--accent); border-radius:6px; }
+  details { margin-top:18px; color:var(--muted); font-size:13px; } summary { cursor:pointer; color:var(--text); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Bitcoin Tx Auto-Verifier</h1>
+  <p class="sub">Type a txid (or an address to pick from its transactions). It pulls the raw data from two explorers, verifies it with Bitcoin's own math against a fully verified header chain, timestamps the report with OpenTimestamps, and lets you multisig-sign it with PEM keys. Everything runs in your browser.</p>
+  <div id="cps" class="step" style="color:var(--ok)"></div>
+
+  <form id="f" autocomplete="off">
+    <label for="q">Transaction ID or Bitcoin address</label>
+    <input id="q" list="hist" spellcheck="false" placeholder="txid (64 hex) or bc1… / 1… / 3…">
+    <datalist id="hist"></datalist>
+    <div class="row">
+      <div><label for="addr">Expected address (optional)</label><input id="addr" spellcheck="false"></div>
+      <div><label for="amt">Expected BTC</label><input id="amt" inputmode="decimal"></div>
+      <div><label for="minc">Min conf</label><input id="minc" inputmode="numeric" value="3"></div>
+    </div>
+    <button id="go" type="submit">Pull &amp; verify</button>
+  </form>
+
+  <div id="picks"></div>
+  <div id="log"></div>
+  <div id="result"></div>
+  <div id="flow"></div>
+
+  <div id="proof" class="card" hidden>
+    <h2>Proof of check · report</h2>
+    <div class="step">Report SHA-256</div><div id="rhash" class="mono"></div>
+    <div id="trail" class="step" style="margin-top:6px"></div>
+    <div id="otsmsg" class="step" style="margin-top:8px"></div>
+    <div class="grid2"><button type="button" class="btn btn2" id="dlr">Download report.json</button><button type="button" class="btn btn2" id="dlo">Download .ots timestamp</button></div>
+    <h3>Multisig sign (PEM)</h3>
+    <div id="signers" class="step"></div>
+    <label class="btn btn2" for="keys">Load private key .pem file(s) to sign<input id="keys" type="file" accept=".pem,.key,text/plain" multiple hidden></label>
+    <div class="step">Keys are used only inside this page in memory, never uploaded. Use the CLI (reportsign.py) to keep keys off the browser entirely.</div>
+    <div id="sigout"></div>
+    <button type="button" class="btn btn2" id="dls">Download report.sigs.json</button>
+  </div>
+
+  <h3>Offline mode · verify a bundle</h3>
+  <div class="step">No network needed: import a bundle made with <span class="mono">txcheck.py --bundle</span>.</div>
+  <div class="grid2"><label class="btn btn2" for="bfile">Import bundle .json<input id="bfile" type="file" accept=".json,application/json" hidden></label><select id="bpick" hidden style="margin-top:8px"></select></div>
+
+  <h3>Verify a signed report</h3>
+  <div class="step">Pick report.json and report.sigs.json together.</div>
+  <label class="btn btn2" for="vfiles">Choose files<input id="vfiles" type="file" accept=".json" multiple hidden></label>
+  <div id="vout"></div>
+
+  <details>
+    <summary>What is proven, and how</summary>
+    <p><b>Math, in your browser:</b> raw tx hashes to the txid; merkle proof places it in the block header; header proof-of-work; headers linked to checkpoints from a full verification of all Bitcoin headers since genesis (PoW, links, exact difficulty retargets, timestamp and version rules); block time above the median of the prior 11 blocks.</p>
+    <p><b>Cross-checked:</b> raw bytes and status from mempool.space and blockstream.info must match.</p>
+    <p><b>Timestamp:</b> the report's SHA-256 goes to OpenTimestamps calendars; the .ots proof anchors into Bitcoin within hours (<span class="mono">ots upgrade</span>, then <span class="mono">ots verify</span>).</p>
+    <p><b>Multisig:</b> ECDSA P-256 / SHA-256 signatures over the exact report bytes; valid only when enough distinct keys from signers.json sign.</p>
+    <p><b>Still trusted:</b> the explorer's tip height for confirmation count. Fully trustless means your own node.</p>
+  </details>
+</main>
+<script>
+/* ===================== core (pure, tested headlessly) ===================== */
+const Core = (() => {
+  // ---- SHA-256 (sync, pure JS) ----
+  const K = new Uint32Array([
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  function sha256(msg) {
+    const len = msg.length, bitLen = len * 8;
+    const padLen = ((len + 9 + 63) >> 6) << 6;
+    const buf = new Uint8Array(padLen); buf.set(msg); buf[len] = 0x80;
+    const dv = new DataView(buf.buffer);
+    dv.setUint32(padLen - 8, Math.floor(bitLen / 0x100000000)); dv.setUint32(padLen - 4, bitLen >>> 0);
+    const H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+    const W = new Uint32Array(64);
+    for (let off = 0; off < padLen; off += 64) {
+      for (let i = 0; i < 16; i++) W[i] = dv.getUint32(off + i * 4);
+      for (let i = 16; i < 64; i++) {
+        const a = W[i-15], b = W[i-2];
+        const s0 = ((a>>>7)|(a<<25)) ^ ((a>>>18)|(a<<14)) ^ (a>>>3);
+        const s1 = ((b>>>17)|(b<<15)) ^ ((b>>>19)|(b<<13)) ^ (b>>>10);
+        W[i] = (W[i-16] + s0 + W[i-7] + s1) >>> 0;
+      }
+      let [a,b,c,d,e,f,g,h] = H;
+      for (let i = 0; i < 64; i++) {
+        const S1 = ((e>>>6)|(e<<26)) ^ ((e>>>11)|(e<<21)) ^ ((e>>>25)|(e<<7));
+        const t1 = (h + S1 + ((e & f) ^ (~e & g)) + K[i] + W[i]) >>> 0;
+        const S0 = ((a>>>2)|(a<<30)) ^ ((a>>>13)|(a<<19)) ^ ((a>>>22)|(a<<10));
+        const t2 = (S0 + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+        h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+      }
+      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+      H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+    }
+    const out = new Uint8Array(32), odv = new DataView(out.buffer);
+    for (let i = 0; i < 8; i++) odv.setUint32(i * 4, H[i]);
+    return out;
+  }
+  const dsha = b => sha256(sha256(b));
+  const hexToBytes = h => { const s = h.replace(/\s+/g, ""); if (!/^([0-9a-fA-F]{2})*$/.test(s)) throw new Error("not valid hex");
+    const o = new Uint8Array(s.length / 2); for (let i = 0; i < o.length; i++) o[i] = parseInt(s.substr(i * 2, 2), 16); return o; };
+  const toHex = b => Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+  const revHex = b => toHex(Uint8Array.from(b).reverse());
+  const concat = (...arrs) => { const n = arrs.reduce((s, a) => s + a.length, 0), o = new Uint8Array(n); let p = 0; for (const a of arrs) { o.set(a, p); p += a.length; } return o; };
+
+  // ---- byte reader ----
+  class R {
+    constructor(b) { this.b = b; this.p = 0; }
+    need(n) { if (this.p + n > this.b.length) throw new Error("data ends early (truncated paste?)"); }
+    bytes(n) { this.need(n); const o = this.b.subarray(this.p, this.p + n); this.p += n; return o; }
+    u8() { this.need(1); return this.b[this.p++]; }
+    u32() { const x = this.bytes(4); return (x[0] | x[1] << 8 | x[2] << 16 | x[3] << 24) >>> 0; }
+    u64() { const lo = this.u32(), hi = this.u32(); return BigInt(hi) * 4294967296n + BigInt(lo); }
+    vi() { const f = this.u8(); if (f < 0xfd) return f; if (f === 0xfd) { const x = this.bytes(2); return x[0] | x[1] << 8; }
+           if (f === 0xfe) return this.u32(); const v = this.u64(); if (v > 0xffffffffn) throw new Error("varint too large"); return Number(v); }
+    get done() { return this.p === this.b.length; }
+  }
+
+  // ---- transaction parse ----
+  function parseTx(bytes) {
+    const r = new R(bytes), start = r.p;
+    const version = r.bytes(4);
+    let segwit = false;
+    if (bytes[r.p] === 0x00 && bytes[r.p + 1] === 0x01) { segwit = true; r.p += 2; }
+    const ioStart = r.p;
+    const nIn = r.vi(); if (nIn === 0) throw new Error("transaction has no inputs");
+    for (let i = 0; i < nIn; i++) { r.bytes(36); r.bytes(r.vi()); r.bytes(4); }
+    const nOut = r.vi(); const outs = [];
+    for (let i = 0; i < nOut; i++) { const value = r.u64(); const script = r.bytes(r.vi()); outs.push({ value, script }); }
+    const ioEnd = r.p;
+    if (segwit) for (let i = 0; i < nIn; i++) { const n = r.vi(); for (let j = 0; j < n; j++) r.bytes(r.vi()); }
+    const lock = r.bytes(4);
+    if (!r.done) throw new Error("extra bytes after transaction");
+    const stripped = concat(version, bytes.subarray(ioStart, ioEnd), lock);
+    return { txid: revHex(dsha(stripped)), wtxid: revHex(dsha(bytes.subarray(start))), segwit, nIn, outs };
+  }
+
+  // ---- address encoding ----
+  const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  function base58check(payload) {
+    const full = concat(payload, dsha(payload).subarray(0, 4));
+    let n = BigInt("0x" + toHex(full)), s = "";
+    while (n > 0n) { s = B58[Number(n % 58n)] + s; n /= 58n; }
+    for (const b of full) { if (b !== 0) break; s = "1" + s; }
+    return s;
+  }
+  const CH = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+  function polymod(v) { const G = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]; let c = 1;
+    for (const x of v) { const b = c >>> 25; c = ((c & 0x1ffffff) << 5) ^ x; for (let i = 0; i < 5; i++) if ((b >>> i) & 1) c ^= G[i]; } return c >>> 0; }
+  function segwitAddr(ver, prog) {
+    const data = [ver]; let acc = 0, bits = 0;
+    for (const b of prog) { acc = (acc << 8) | b; bits += 8; while (bits >= 5) { bits -= 5; data.push((acc >>> bits) & 31); } }
+    if (bits) data.push((acc << (5 - bits)) & 31);
+    const hrp = "bc", hx = [...hrp].map(c => c.charCodeAt(0) >> 5).concat([0], [...hrp].map(c => c.charCodeAt(0) & 31));
+    const k = ver === 0 ? 1 : 0x2bc830a3;
+    const pm = polymod(hx.concat(data, [0, 0, 0, 0, 0, 0])) ^ k;
+    const chk = []; for (let i = 0; i < 6; i++) chk.push((pm >>> (5 * (5 - i))) & 31);
+    return hrp + "1" + data.concat(chk).map(x => CH[x]).join("");
+  }
+  function scriptInfo(s) {
+    const n = s.length;
+    if (n === 25 && s[0] === 0x76 && s[1] === 0xa9 && s[2] === 0x14 && s[23] === 0x88 && s[24] === 0xac)
+      return { type: "P2PKH", address: base58check(concat([0x00], s.subarray(3, 23))) };
+    if (n === 23 && s[0] === 0xa9 && s[1] === 0x14 && s[22] === 0x87)
+      return { type: "P2SH", address: base58check(concat([0x05], s.subarray(2, 22))) };
+    if (n === 22 && s[0] === 0x00 && s[1] === 0x14) return { type: "P2WPKH", address: segwitAddr(0, s.subarray(2)) };
+    if (n === 34 && s[0] === 0x00 && s[1] === 0x20) return { type: "P2WSH", address: segwitAddr(0, s.subarray(2)) };
+    if (n === 34 && s[0] === 0x51 && s[1] === 0x20) return { type: "P2TR", address: segwitAddr(1, s.subarray(2)) };
+    if (n >= 1 && s[0] === 0x6a) return { type: "OP_RETURN", address: null };
+    if ((n === 35 && s[0] === 0x21 && s[34] === 0xac) || (n === 67 && s[0] === 0x41 && s[66] === 0xac))
+      return { type: "P2PK", address: null, pubkey: toHex(s.subarray(1, n - 1)) };
+    return { type: "non-standard", address: null };
+  }
+
+  // ---- merkleblock (BIP37) ----
+  function parseMerkleBlock(bytes) {
+    const r = new R(bytes);
+    const header = r.bytes(80);
+    const nTx = r.u32();
+    const nH = r.vi(); const hashes = []; for (let i = 0; i < nH; i++) hashes.push(r.bytes(32));
+    const flags = r.bytes(r.vi());
+    if (!r.done) throw new Error("extra bytes after merkleblock");
+    return { header, nTx, hashes, flags };
+  }
+  function extractMatches({ nTx, hashes, flags }) {
+    if (nTx === 0) throw new Error("block reports zero transactions");
+    if (hashes.length > nTx) throw new Error("more hashes than transactions");
+    if (flags.length * 8 < hashes.length) throw new Error("too few flag bits");
+    let height = 0; while ((nTx + (1 << height) - 1) >> height > 1) height++;
+    const width = h => (nTx + (1 << h) - 1) >> h;
+    let bitsUsed = 0, hashUsed = 0; const matches = [];
+    const bit = () => { if (bitsUsed >= flags.length * 8) throw new Error("ran out of flag bits"); const v = (flags[bitsUsed >> 3] >> (bitsUsed & 7)) & 1; bitsUsed++; return v; };
+    function trav(h, pos) {
+      const f = bit();
+      if (h === 0 || !f) {
+        if (hashUsed >= hashes.length) throw new Error("ran out of hashes");
+        const x = hashes[hashUsed++]; if (h === 0 && f) matches.push({ hash: x, pos }); return x;
+      }
+      const L = trav(h - 1, pos * 2);
+      let Rr;
+      if (pos * 2 + 1 < width(h - 1)) { Rr = trav(h - 1, pos * 2 + 1); if (toHex(Rr) === toHex(L)) throw new Error("duplicate sibling hashes (CVE-2012-2459 pattern)"); }
+      else Rr = L;
+      return dsha(concat(L, Rr));
+    }
+    const root = trav(height, 0);
+    if (hashUsed !== hashes.length) throw new Error("not all hashes were used");
+    if (((bitsUsed + 7) >> 3) !== flags.length) throw new Error("not all flag bytes were used");
+    return { root, matches };
+  }
+  function headerInfo(hd) {
+    const dv = new DataView(hd.buffer, hd.byteOffset, 80);
+    const time = dv.getUint32(68, true), bits = dv.getUint32(72, true);
+    const exp = bits >>> 24, mant = BigInt(bits & 0x007fffff);
+    const target = exp <= 3 ? mant >> BigInt(8 * (3 - exp)) : mant << BigInt(8 * (exp - 3));
+    const hashBE = revHex(dsha(hd));
+    const hashN = BigInt("0x" + hashBE);
+    const maxT = 0xffffn << 208n;
+    const difficulty = target > 0n ? Number(maxT * 1000n / target) / 1000 : 0;
+    return { hash: hashBE, merkleRoot: hd.subarray(36, 68), time, bits, target, powOk: !(bits & 0x00800000) && target > 0n && target <= maxT && hashN <= target, difficulty };
+  }
+
+  // ---- full verification ----
+  // main-chain proof: proven header -> chain headers -> checkpoint from full-chain verification
+  function chainProof(hdr, chainHex, cps) {
+    if (!cps) return { state: "skip", text: "No verified checkpoints loaded — main chain not checked" };
+    const at = cps.byHash.get(hdr.hash);
+    if (at != null) return { state: "pass", text: `Block is checkpoint ${at.toLocaleString()} of the fully verified chain (${cps.headers.toLocaleString()} headers, all rules passed)`, height: at };
+    if (!(chainHex || "").trim()) return { state: "skip", text: "Bundle has no chain headers — main chain not checked" };
+    let b; try { b = hexToBytes(chainHex); } catch { return { state: "fail", text: "Chain headers are not valid hex" }; }
+    if (!b.length || b.length % 80) return { state: "fail", text: "Chain headers are not whole 80-byte headers" };
+    let prev = hdr.hash; const n = b.length / 80;
+    for (let i = 0; i < n; i++) {
+      const hd = b.subarray(i * 80, i * 80 + 80);
+      if (revHex(hd.subarray(4, 36)) !== prev) return { state: "fail", text: `Chain header ${i + 1}/${n} does not link to the one before` };
+      const hi = headerInfo(hd);
+      if (!hi.powOk) return { state: "fail", text: `Chain header ${i + 1}/${n} fails proof-of-work` };
+      prev = hi.hash;
+    }
+    const cpH = cps.byHash.get(prev);
+    if (cpH == null) return { state: "fail", text: `${n} chain headers link and have valid PoW, but do NOT end at a verified checkpoint` };
+    return { state: "pass", text: `Linked by ${n.toLocaleString()} headers (each PoW-checked) to checkpoint ${cpH.toLocaleString()} of the fully verified chain → block height ${(cpH - n).toLocaleString()} is on the main chain`, height: cpH - n };
+  }
+
+  function verify({ txid, txHex, mbHex, statusJson, tip, minConf = 3, address = "", amount = null, chainHex = "", checkpoints = null }) {
+    const checks = []; const add = (state, text) => checks.push({ state, text });
+    let chain = null;
+    const want = String(txid || "").trim().toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(want)) return { verdict: "ERROR", cls: "bad", problems: ["txid must be 64 hex characters"], checks };
+    let tx, mb, hdr, mres;
+    try { tx = parseTx(hexToBytes(txHex || "")); } catch (e) { return { verdict: "ERROR", cls: "bad", problems: ["raw transaction: " + e.message], checks }; }
+    const outputs = tx.outs.map(o => ({ ...scriptInfo(o.script), sats: o.value }));
+    if (tx.txid === want) add("pass", "Raw transaction hashes to this txid");
+    else add("fail", `Raw transaction hashes to ${tx.txid}, not the txid you entered`);
+
+    if (!(mbHex || "").trim()) add("fail", "No merkleblock proof pasted — inclusion not checked");
+    else {
+      try { mb = parseMerkleBlock(hexToBytes(mbHex)); mres = extractMatches(mb); hdr = headerInfo(mb.header); }
+      catch (e) { add("fail", "Merkleblock proof invalid: " + e.message); }
+    }
+    if (mres) {
+      if (toHex(mres.root) === toHex(hdr.merkleRoot)) add("pass", "Merkle proof rebuilds the block header's merkle root");
+      else add("fail", "Merkle proof does NOT match the header's merkle root");
+      const hit = mres.matches.find(m => revHex(m.hash) === want);
+      if (hit) add("pass", `txid is committed in the block (position ${hit.pos} of ${mb.nTx})`);
+      else add("fail", "txid is NOT among the transactions this proof commits to");
+      if (hdr.powOk) add("pass", `Block hash meets its proof-of-work target (difficulty ${hdr.difficulty.toLocaleString(undefined, { maximumFractionDigits: 0 })})`);
+      else add("fail", "Block hash does NOT meet its proof-of-work target");
+      chain = chainProof(hdr, chainHex, checkpoints); add(chain.state, chain.text);
+    }
+
+    let height = null, confs = null, st = null;
+    if ((statusJson || "").trim()) {
+      try { st = JSON.parse(statusJson); } catch { add("fail", "Status JSON could not be parsed"); }
+      if (st) {
+        if (!st.confirmed) add("fail", "Status says UNCONFIRMED (explorer data)");
+        else {
+          height = st.block_height;
+          if (chain && chain.height != null && chain.height !== height) add("fail", `Status height ${height} differs from proven height ${chain.height}`);
+          if (hdr && st.block_hash === hdr.hash) add("pass", `Status block hash matches the proven header (height ${height})`);
+          else if (hdr) add("fail", "Status block hash does not match the proven header");
+          else add("info", `Status says block ${height} (explorer data, unproven)`);
+        }
+      }
+    } else if (chain && chain.height != null) { height = chain.height; add("info", `Block height ${height} taken from the main-chain proof`); }
+    else add("skip", "No status pasted — block height unknown");
+    const tipN = parseInt(String(tip ?? "").trim(), 10);
+    if (height != null && Number.isFinite(tipN)) {
+      confs = tipN - height + 1;
+      if (confs < 1) add("fail", `Tip height ${tipN} is below block height ${height}`);
+      else if (confs >= minConf) add("pass", `${confs.toLocaleString()} confirmations (need ${minConf}) — from pasted tip`);
+      else add("fail", `Only ${confs} confirmation(s), need ${minConf}`);
+    } else add("skip", "Confirmations not counted (need status + tip height)");
+
+    let paid = null;
+    if (address) {
+      paid = outputs.filter(o => o.address === address.trim()).reduce((s, o) => s + o.sats, 0n);
+      const amtSats = amount != null && amount !== "" ? BigInt(Math.round(parseFloat(amount) * 1e8)) : null;
+      if (paid === 0n) add("fail", `No output pays ${address}`);
+      else if (amtSats != null && paid < amtSats) add("fail", `${address} receives ${fmt(paid)} BTC, expected ${fmt(amtSats)}`);
+      else add("pass", `${address} receives ${fmt(paid)} BTC`);
+    }
+
+    const fails = checks.filter(c => c.state === "fail").map(c => c.text);
+    const coreOk = fails.length === 0 && !!mres;
+    let verdict, cls;
+    if (fails.length) { verdict = "NOT VERIFIED"; cls = mres || tx.txid === want ? "warn" : "bad"; }
+    else if (coreOk && confs != null) { verdict = "VERIFIED"; cls = "ok"; }
+    else { verdict = "INCLUDED IN BLOCK — confirmations not checked"; cls = "part"; }
+    return { verdict, cls, problems: fails, checks, tx, outputs, header: hdr, nTx: mb && mb.nTx, height, confs, txid: want, chain };
+  }
+  const fmt = sats => { const s = sats.toString().padStart(9, "0"); return s.slice(0, -8) + "." + s.slice(-8); };
+
+  function parseBundle(text) {
+    let j; try { j = JSON.parse(text); } catch { return null; }
+    if (!j || j.format !== "txproof-bundle-v1" || !Array.isArray(j.entries)) return null;
+    return { createdAt: j.created_at || null, entries: j.entries.filter(e => e && typeof e.txid === "string") };
+  }
+  function classify(text) {
+    const t = text.trim();
+    if (parseBundle(t)) return "bundle";
+    if (/^\{[\s\S]*"confirmed"[\s\S]*\}$/.test(t)) return "st";
+    if (/^\d{1,8}$/.test(t)) return "tip";
+    if (/^[0-9a-fA-F]{64}$/.test(t)) return "txid";
+    if (/^([0-9a-fA-F]{2})+$/.test(t)) {
+      try { parseMerkleBlock(hexToBytes(t)); return "mb"; } catch {}
+      try { parseTx(hexToBytes(t)); return "txhex"; } catch {}
+    }
+    return null;
+  }
+  function loadCheckpoints(j) {
+    if (!j || j.format !== "chain-checkpoints-v1" || !j.all_rules_passed) return null;
+    return { headers: j.headers, tipHeight: j.tip_height, tipHash: j.tip_hash, verifiedAt: j.verified_at,
+             byHash: new Map(j.checkpoints.map(c => [c.hash, c.height])) };
+  }
+  return { verify, classify, parseBundle, loadCheckpoints, fmt, sha256, toHex, hexToBytes, headerInfo, revHex, dsha, parseMerkleBlock, concat };
+})();
+/* =================== end core =================== */
+</script>
+<script>
+/* Bitcoin Tx Auto-Verifier — app layer (Core is inlined above at build time). */
+(() => {
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const API = { mempool: "https://mempool.space/api", blockstream: "https://blockstream.info/api" };
+const HDN = "https://block-dn.org/headers/";
+const CALENDARS = ["https://a.pool.opentimestamps.org", "https://b.pool.opentimestamps.org", "https://a.pool.eternitywall.com"];
+const enc = new TextEncoder();
+let CPS = null, SIGNERS = null, lastReport = null;   // lastReport = { bytes, obj }
+
+// ---------- helpers ----------
+async function getText(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${new URL(url).host} HTTP ${r.status}`); return (await r.text()).trim(); }
+async function getJson(url) { return JSON.parse(await getText(url)); }
+// tamper-evident audit trail: every step is timestamped and hash-chained to the step before
+let TRAIL = [];
+const ZERO = "0".repeat(64);
+function stamp(state, msg) {
+  const t = new Date().toISOString(), prev = TRAIL.length ? TRAIL[TRAIL.length - 1].hash : ZERO;
+  const hash = Core.toHex(Core.sha256(enc.encode(`${prev}|${t}|${state}|${msg}`)));
+  TRAIL.push({ t, state, msg, prev, hash }); return { t, hash };
+}
+const log = (msg, state = "info") => { const { t, hash } = stamp(state, msg); const d = document.createElement("div"); d.className = "check " + state;
+  d.innerHTML = `<span class="ic">${{ pass: "✓", fail: "✗", info: "·", skip: "–" }[state]}</span><span>${esc(msg)}<br><span class="step mono">${t.slice(11, 23)}Z · ${hash.slice(0, 12)}</span></span>`; $("log").appendChild(d); };
+const b64 = u8 => btoa(String.fromCharCode(...u8));
+const unb64 = s => Uint8Array.from(atob(s.replace(/\s+/g, "")), c => c.charCodeAt(0));
+function download(name, data, type) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+async function headersRange(lo, hi) {   // raw headers lo..hi inclusive, via HTTP Range on 100k-header files
+  const parts = [];
+  for (let start = Math.floor(lo / 1e5) * 1e5; start <= hi; start += 1e5) {
+    const a = Math.max(lo, start) - start, b = Math.min(hi, start + 99999) - start;
+    const r = await fetch(HDN + start, { headers: { Range: `bytes=${a * 80}-${(b + 1) * 80 - 1}` } });
+    if (!(r.status === 206 || r.status === 200)) throw new Error(`block-dn HTTP ${r.status}`);
+    let buf = new Uint8Array(await r.arrayBuffer());
+    if (r.status === 200) buf = buf.subarray(a * 80, (b + 1) * 80);
+    if (buf.length !== (b - a + 1) * 80) throw new Error("header source has not reached that height yet");
+    parts.push(buf);
+  }
+  return Core.concat(...parts);
+}
+const ceil2016 = h => Math.ceil(h / 2016) * 2016;
+
+// ---------- autocomplete: history + address lookup ----------
+function history() { try { return JSON.parse(localStorage.getItem("txv_hist") || "[]"); } catch { return []; } }
+function remember(v) { try { const h = [v, ...history().filter(x => x !== v)].slice(0, 25); localStorage.setItem("txv_hist", JSON.stringify(h)); } catch {} renderHistory(); }
+function renderHistory() { $("hist").innerHTML = history().map(v => `<option value="${esc(v)}">`).join(""); }
+
+async function listAddress(addr) {
+  $("picks").innerHTML = `<div class="step">Looking up ${esc(addr)}…</div>`;
+  const [info, txs] = await Promise.all([getJson(`${API.mempool}/address/${addr}`), getJson(`${API.mempool}/address/${addr}/txs`)]);
+  const cs = info.chain_stats;
+  const rows = txs.map(t => {
+    const inn = t.vout.filter(o => o.scriptpubkey_address === addr).reduce((s, o) => s + o.value, 0);
+    const out = t.vin.filter(i => i.prevout && i.prevout.scriptpubkey_address === addr).reduce((s, i) => s + i.prevout.value, 0);
+    const d = t.status.confirmed ? new Date(t.status.block_time * 1000).toISOString().slice(0, 10) : "unconfirmed";
+    return `<button type="button" class="pick" data-tx="${t.txid}" data-addr="${esc(addr)}" data-amt="${inn > out ? ((inn - out) / 1e8).toFixed(8) : ""}">
+      <span>${d}</span><span class="mono">${t.txid.slice(0, 14)}…</span><b>${((inn - out) / 1e8 >= 0 ? "+" : "")}${((inn - out) / 1e8).toFixed(8)}</b></button>`;
+  }).join("");
+  $("picks").innerHTML = `<div class="step">${cs.tx_count} txs · balance ${((cs.funded_txo_sum - cs.spent_txo_sum) / 1e8).toFixed(8)} BTC · newest ${txs.length} shown — tap one to verify</div>${rows}`;
+  remember(addr);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  $("q").value = b.dataset.tx;
+  if (b.dataset.amt) { $("addr").value = b.dataset.addr; $("amt").value = b.dataset.amt; }
+  run();
+});
+
+// ---------- main: pull → fill → verify → report → timestamp ----------
+async function run() {
+  const q = $("q").value.trim();
+  $("log").innerHTML = ""; $("result").innerHTML = ""; $("flow").innerHTML = ""; $("proof").hidden = true; lastReport = null; TRAIL = [];
+  if (!q) return;
+  if (!/^[0-9a-fA-F]{64}$/.test(q)) {
+    if (/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{20,90}$/.test(q)) { try { await listAddress(q); } catch (e) { $("picks").innerHTML = `<div class="step">Address lookup failed: ${esc(e.message)}</div>`; } }
+    else log("Enter a 64-hex txid or a Bitcoin address", "fail");
+    return;
+  }
+  const txid = q.toLowerCase(); remember(txid); $("picks").innerHTML = "";
+  $("go").disabled = true; $("go").textContent = "Working…";
+  try {
+    // 1 pull from two independent sources
+    log("Pulling raw data from mempool.space and blockstream.info…");
+    const [hexA, hexB, stA, stB] = await Promise.all([
+      getText(`${API.mempool}/tx/${txid}/hex`), getText(`${API.blockstream}/tx/${txid}/hex`),
+      getJson(`${API.mempool}/tx/${txid}/status`), getJson(`${API.blockstream}/tx/${txid}/status`)]);
+    log(hexA === hexB ? "Both sources returned identical raw transaction bytes" : "Sources returned DIFFERENT raw transactions", hexA === hexB ? "pass" : "fail");
+    log(stA.confirmed === stB.confirmed && stA.block_hash === stB.block_hash ? "Both sources agree on confirmation and block" : "Sources DISAGREE on status", stA.confirmed === stB.confirmed && stA.block_hash === stB.block_hash ? "pass" : "fail");
+    if (!stA.confirmed) { finish({ txid, txHex: hexA, statusJson: JSON.stringify(stA), unconfirmed: true }); return; }
+    const [mbHex, tip, tipHash] = await Promise.all([getText(`${API.mempool}/tx/${txid}/merkleblock-proof`),
+      getText(`${API.mempool}/blocks/tip/height`), getText(`${API.mempool}/blocks/tip/hash`)]);
+    const h = stA.block_height;
+
+    // 2 headers around the block, up to a verified checkpoint
+    const extra = [];
+    let chainHex = "";
+    const proven = Core.parseMerkleBlock(Core.hexToBytes(mbHex)).header;
+    if (CPS) {
+      let lo = Math.max(0, h - 11), hi, mode;
+      if (h <= CPS.tipHeight) { hi = Math.min(ceil2016(h), CPS.tipHeight); mode = "to-checkpoint"; }
+      else { lo = Math.min(lo, CPS.tipHeight); hi = h; mode = "from-tip"; }
+      log(`Fetching ${hi - lo + 1} block headers (${lo}–${hi}) for chain + timestamp checks…`);
+      const hdrs = await headersRange(lo, hi);
+      const at = k => hdrs.subarray((k - lo) * 80, (k - lo + 1) * 80);
+      const same = Core.toHex(at(h)) === Core.toHex(proven);
+      extra.push([same ? "pass" : "fail", same ? `Header at height ${h} from the header source equals the proven block header` : `Header at height ${h} differs from the proven block header`]);
+      if (mode === "to-checkpoint") chainHex = Core.toHex(hdrs.subarray((h + 1 - lo) * 80));
+      else {   // block is newer than the checkpoints: link forward from the verified tip
+        let prev = CPS.tipHash, ok = Core.headerInfo(at(CPS.tipHeight)).hash === CPS.tipHash;
+        for (let k = CPS.tipHeight + 1; ok && k <= h; k++) {
+          const hd = at(k), hi2 = Core.headerInfo(hd);
+          if (Core.revHex(hd.subarray(4, 36)) !== prev || !hi2.powOk) ok = false; prev = hi2.hash;
+        }
+        extra.push([ok ? "pass" : "fail", ok ? `Linked forward by ${h - CPS.tipHeight} PoW-checked headers from the verified checkpoint tip ${CPS.tipHeight} → block ${h} is on the main chain`
+                                          : "Could not link this block forward from the verified checkpoint tip"]);
+      }
+      // timestamp consensus rules (proof-of-time)
+      const t = Core.headerInfo(proven).time;
+      if (h >= 11) {
+        const prevT = Array.from({ length: 11 }, (_, i) => Core.headerInfo(at(h - 11 + i)).time).sort((x, y) => x - y);
+        const mtp = prevT[5];
+        extra.push([t > mtp ? "pass" : "fail", `Block time ${iso(t)} ${t > mtp ? ">" : "≤"} median of previous 11 blocks ${iso(mtp)} (consensus rule)`]);
+      }
+      extra.push([t <= Date.now() / 1000 + 7200 ? "pass" : "fail", `Block time is not more than 2 h in the future`]);
+    } else extra.push(["skip", "checkpoints.json not loaded — main chain not checked"]);
+
+    finish({ txid, txHex: hexA, mbHex, statusJson: JSON.stringify(stA), tip, tipHash, chainHex, extra });
+    flow(txid).catch(e => { $("flow").innerHTML = `<div class="step">Flow lookup failed: ${esc(e.message)}</div>`; });
+  } catch (e) {
+    log("Stopped: " + e.message, "fail");
+    $("result").innerHTML = `<div class="verdict v-bad">ERROR<ul><li>${esc(e.message)}</li></ul></div>`;
+  } finally { $("go").disabled = false; $("go").textContent = "Pull & verify"; }
+}
+const iso = t => new Date(t * 1000).toISOString().replace("T", " ").slice(0, 19) + " UTC";
+
+function finish(d) {
+  const rep = Core.verify({ txid: d.txid, txHex: d.txHex, mbHex: d.mbHex || "", statusJson: d.statusJson, tip: d.tip,
+    minConf: Math.max(0, parseInt($("minc").value, 10) || 0), address: $("addr").value.trim(), amount: $("amt").value.trim() || null,
+    chainHex: d.chainHex || "", checkpoints: CPS });
+  for (const [state, text] of d.extra || []) rep.checks.push({ state, text });
+  for (const n of $("log").querySelectorAll(".check.fail")) rep.checks.push({ state: "fail", text: n.textContent.slice(1) });
+  const fails = rep.checks.filter(c => c.state === "fail").map(c => c.text);
+  if (fails.length) { rep.verdict = "NOT VERIFIED"; rep.cls = "warn"; rep.problems = [...new Set(fails)]; }
+  if (d.unconfirmed) { rep.verdict = "UNCONFIRMED — no block proof exists yet"; rep.cls = "warn"; }
+  for (const c of rep.checks) stamp(c.state, "check: " + c.text);
+  stamp("info", "verdict: " + rep.verdict);
+  render(rep, d);
+  buildReport(rep, d);
+}
+
+function render(rep, d) {
+  const icon = { pass: "✓", fail: "✗", skip: "–", info: "i" };
+  let h = `<div class="verdict v-${rep.cls}">${esc(rep.verdict)}${rep.problems && rep.problems.length ? "<ul>" + rep.problems.map(p => `<li>${esc(p)}</li>`).join("") + "</ul>" : ""}</div>`;
+  h += `<div class="card"><h2>Checks</h2>` + rep.checks.map(c => `<div class="check ${c.state}"><span class="ic">${icon[c.state]}</span><span>${esc(c.text)}</span></div>`).join("") + `</div>`;
+  if (rep.header) h += `<div class="card"><h2>Proven block</h2><div class="mono">${rep.header.hash}</div><div class="step">${iso(rep.header.time)} · ${rep.nTx.toLocaleString()} txs${rep.height != null ? " · height " + rep.height.toLocaleString() : ""}${rep.confs != null ? " · " + rep.confs.toLocaleString() + " confirmations" : ""}</div></div>`;
+  if (rep.outputs) { const addr = $("addr").value.trim();
+    h += `<div class="card"><h2>Outputs (decoded from raw bytes)</h2><table>` + rep.outputs.map(o => `<tr class="${addr && o.address === addr ? "hit" : ""}"><td class="mono">${o.address ? esc(o.address) : `<span class="step">${o.type}</span>`}</td><td class="v mono">${Core.fmt(o.sats)}</td></tr>`).join("") + `</table></div>`; }
+  $("result").innerHTML = h;
+}
+
+// ---------- money flow: where every input started, where every output ended ----------
+async function flow(txid) {
+  $("flow").innerHTML = `<div class="step">Tracing inputs and outputs…</div>`;
+  const [tx, spends] = await Promise.all([getJson(`${API.mempool}/tx/${txid}`), getJson(`${API.mempool}/tx/${txid}/outspends`)]);
+  const fb = (t) => `<button type="button" class="follow" data-tx="${t}">${t.slice(0, 10)}…</button>`;
+  const ins = tx.vin.map(i => i.is_coinbase
+    ? `<tr><td class="mono">coinbase (newly mined coins)</td><td class="v mono"></td><td class="v">start of chain</td></tr>`
+    : `<tr><td class="mono">${esc(i.prevout.scriptpubkey_address || i.prevout.scriptpubkey_type)}</td><td class="v mono">${Core.fmt(BigInt(i.prevout.value))}</td><td class="v">← ${fb(i.txid)}:${i.vout}</td></tr>`).join("");
+  const outs = tx.vout.map((o, n) => {
+    const sp = spends[n] || {};
+    const dest = sp.spent ? `→ ${fb(sp.txid)}:${sp.vin}` : (o.scriptpubkey_type === "op_return" ? "unspendable" : "<b style=\"color:var(--ok)\">unspent</b>");
+    return `<tr><td class="mono">${esc(o.scriptpubkey_address || o.scriptpubkey_type)}</td><td class="v mono">${Core.fmt(BigInt(o.value))}</td><td class="v">${dest}</td></tr>`;
+  }).join("");
+  const uniq = new Set([...tx.vin.filter(i => !i.is_coinbase).map(i => i.prevout.scriptpubkey_address), ...tx.vout.map(o => o.scriptpubkey_address)].filter(Boolean));
+  $("flow").innerHTML = `<div class="card"><h2>Money flow · ${uniq.size} address(es) · tap a txid to follow that path</h2>
+    <div class="step">Inputs — where each coin STARTED (${tx.vin.length})</div><table>${ins}</table>
+    <div class="step" style="margin-top:10px">Outputs — where each coin ENDED (${tx.vout.length})</div><table>${outs}</table>
+    <div class="step" style="margin-top:8px">Fee ${Core.fmt(BigInt(tx.fee || 0))} BTC · explorer data (inputs/spends are not part of the cryptographic proof above)</div></div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest(".follow"); if (!b) return;
+  $("q").value = b.dataset.tx; $("addr").value = ""; $("amt").value = "";   // a new hop has no expected payee
+  window.scrollTo(0, 0); run(); });
+
+// ---------- report + OpenTimestamps (proof of check) ----------
+async function buildReport(rep, d) {
+  const obj = {
+    format: "txproof-report-v1", generated_at: new Date().toISOString(), generator: location.href.split("#")[0],
+    txid: d.txid, verdict: rep.verdict, checks: rep.checks.map(c => ({ state: c.state, text: c.text })),
+    block: rep.header ? { hash: rep.header.hash, height: rep.height, time: rep.header.time } : null,
+    confirmations: rep.confs, chain_tip_seen: d.tip ? { height: +d.tip, hash: d.tipHash } : null,
+    checkpoint_anchor: CPS ? { tip_height: CPS.tipHeight, tip_hash: CPS.tipHash, verified_at: CPS.verifiedAt } : null,
+    outputs: (rep.outputs || []).map(o => ({ type: o.type, address: o.address, btc: Core.fmt(o.sats) })),
+    expected: $("addr").value.trim() ? { address: $("addr").value.trim(), btc: $("amt").value.trim() || null } : null,
+    audit_trail: { scheme: "sha256(prev|time|state|msg)", genesis: ZERO, steps: TRAIL, head: TRAIL.length ? TRAIL[TRAIL.length - 1].hash : ZERO },
+  };
+  const bytes = enc.encode(JSON.stringify(obj, null, 2) + "\n");
+  const digest = Core.sha256(bytes);
+  lastReport = { bytes, obj, digest, ots: null };
+  $("proof").hidden = false; $("sigout").innerHTML = "";
+  $("rhash").textContent = Core.toHex(digest);
+  $("trail").textContent = `Audit trail: ${TRAIL.length} timestamped steps, ${TRAIL[0] ? TRAIL[0].t : "-"} → ${TRAIL.length ? TRAIL[TRAIL.length - 1].t : "-"}, head ${obj.audit_trail.head.slice(0, 16)}… (each step hash-linked to the previous; the whole trail is inside the timestamped report)`;
+  $("otsmsg").textContent = "Submitting SHA-256 to OpenTimestamps calendars…";
+  try { const { ots, ok } = await otsStamp(digest); lastReport.ots = ots;
+    $("otsmsg").textContent = `Timestamp pending on ${ok.length}/${CALENDARS.length} calendars (${ok.map(u => new URL(u).host).join(", ")}). Anchors into a Bitcoin block within hours — then run: ots upgrade report.json.ots`;
+  } catch (e) { $("otsmsg").textContent = "Timestamp failed: " + e.message; }
+}
+
+function otsStamp(digest) {
+  const nonce = crypto.getRandomValues(new Uint8Array(16));
+  const commit = Core.sha256(Core.concat(digest, nonce));
+  return Promise.allSettled(CALENDARS.map(async u => {
+    const r = await fetch(u + "/digest", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: commit });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`); return { u, b: new Uint8Array(await r.arrayBuffer()) };
+  })).then(rs => {
+    const ok = rs.filter(r => r.status === "fulfilled").map(r => r.value);
+    if (!ok.length) throw new Error("no calendar answered");
+    const magic = Core.concat(Uint8Array.of(0), enc.encode("OpenTimestamps"), Uint8Array.of(0, 0), enc.encode("Proof"), Uint8Array.of(0, 0xbf, 0x89, 0xe2, 0xe8, 0x84, 0xe8, 0x92, 0x94));
+    const parts = [magic, Uint8Array.of(0x01, 0x08), digest, Uint8Array.of(0xf0, 16), nonce, Uint8Array.of(0x08)];
+    ok.forEach((c, i) => { if (i < ok.length - 1) parts.push(Uint8Array.of(0xff)); parts.push(c.b); });
+    return { ots: Core.concat(...parts), ok: ok.map(c => c.u) };
+  });
+}
+
+// ---------- multisig PEM: sign + verify (ECDSA P-256 / SHA-256, raw r||s) ----------
+const pemBody = pem => unb64(pem.replace(/-----[^-]+-----/g, ""));
+const toPem = (der, label) => `-----BEGIN ${label}-----\n${b64(der).match(/.{1,64}/g).join("\n")}\n-----END ${label}-----\n`;
+async function pubFromPriv(pem) {
+  const k = await crypto.subtle.importKey("pkcs8", pemBody(pem), { name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+  const jwk = await crypto.subtle.exportKey("jwk", k); delete jwk.d; jwk.key_ops = ["verify"];
+  const pub = await crypto.subtle.importKey("jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]);
+  const signKey = await crypto.subtle.importKey("pkcs8", pemBody(pem), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+  return { signKey, pubPem: toPem(new Uint8Array(await crypto.subtle.exportKey("spki", pub)), "PUBLIC KEY") };
+}
+const normPem = p => p.replace(/\s+/g, "");
+const signerName = pubPem => { const s = SIGNERS && SIGNERS.signers.find(x => normPem(x.pubkey_pem) === normPem(pubPem)); return s ? s.name : null; };
+
+async function signReport(files) {
+  if (!lastReport) return;
+  const sigs = [];
+  for (const f of files) {
+    try {
+      const { signKey, pubPem } = await pubFromPriv(await f.text());
+      const sig = new Uint8Array(await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, signKey, lastReport.bytes));
+      sigs.push({ signer: signerName(pubPem) || f.name.replace(/\.pem$/, ""), alg: "ES256", pubkey_pem: pubPem, sig_b64: b64(sig) });
+    } catch (e) { $("sigout").innerHTML += `<div class="check fail"><span class="ic">✗</span><span>${esc(f.name)}: not a P-256 private key (${esc(e.message)})</span></div>`; }
+  }
+  if (!sigs.length) return;
+  lastReport.sigs = { format: "txproof-sigs-v1", report_sha256: Core.toHex(lastReport.digest), threshold: SIGNERS ? SIGNERS.threshold : sigs.length, signatures: sigs };
+  const res = await verifySigs(lastReport.bytes, lastReport.sigs);
+  showSigResult(res);
+}
+
+async function verifySigs(bytes, sigsObj) {
+  const out = []; const seen = new Set();
+  const hash = Core.toHex(Core.sha256(bytes));
+  if (sigsObj.report_sha256 && sigsObj.report_sha256 !== hash) out.push({ ok: false, text: "Signature file is for a different report (SHA-256 mismatch)" });
+  for (const s of sigsObj.signatures || []) {
+    let ok = false;
+    try {
+      const k = await crypto.subtle.importKey("spki", pemBody(s.pubkey_pem), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+      ok = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, k, unb64(s.sig_b64), bytes);
+    } catch {}
+    const trusted = signerName(s.pubkey_pem);
+    const key = normPem(s.pubkey_pem);
+    const dup = seen.has(key); seen.add(key);
+    out.push({ ok: ok && !!trusted && !dup, valid: ok, trusted, dup,
+      text: `${s.signer}: signature ${ok ? "valid" : "INVALID"}${trusted ? ` · trusted key "${trusted}"` : " · key NOT in trusted signers"}${dup ? " · duplicate key ignored" : ""}` });
+  }
+  const need = SIGNERS ? SIGNERS.threshold : 1;
+  const good = out.filter(o => o.ok).length;
+  return { good, need, total: SIGNERS ? SIGNERS.signers.length : out.length, ok: good >= need && !out.some(o => o.text.startsWith("Signature file is for")), lines: out };
+}
+
+function showSigResult(res, el = $("sigout")) {
+  el.innerHTML = `<div class="verdict ${res.ok ? "v-ok" : "v-bad"}" style="font-size:15px">${res.ok ? "MULTISIG VALID" : "MULTISIG NOT MET"} — ${res.good} of ${res.total} trusted signers (need ${res.need})</div>` +
+    res.lines.map(l => `<div class="check ${l.ok ? "pass" : "fail"}"><span class="ic">${l.ok ? "✓" : "✗"}</span><span>${esc(l.text)}</span></div>`).join("");
+}
+
+// ---------- offline: import bundle (no network needed) ----------
+async function importBundleText(text) {
+  const b = Core.parseBundle(text);
+  if (!b || !b.entries.length) { log("Not a txproof bundle", "fail"); return; }
+  const e = b.entries[+($("bpick").value || 0)] || b.entries[0];
+  $("bpick").innerHTML = b.entries.map((x, i) => `<option value="${i}">${i + 1}. ${x.txid.slice(0, 16)}…</option>`).join("");
+  $("bpick").hidden = b.entries.length < 2; $("bpick").onchange = () => importBundleText(text);
+  $("q").value = e.txid; $("log").innerHTML = ""; $("picks").innerHTML = ""; TRAIL = [];
+  log(`Offline mode: verifying bundle data (made ${b.createdAt || "?"}) — no network used`, "info");
+  if (e.error) { log("Bundle has no proof for this tx: " + e.error, "fail"); return; }
+  finish({ txid: e.txid, txHex: e.tx_hex, mbHex: e.merkleblock_hex, statusJson: JSON.stringify(e.status), tip: e.tip_height, chainHex: e.chain_headers_hex || "", extra: [] });
+}
+
+// ---------- verify an existing signed report ----------
+async function verifyFiles(files) {
+  let rep = null, sigs = null;
+  for (const f of files) { const t = await f.text(); try { const j = JSON.parse(t); if (j.format === "txproof-sigs-v1") sigs = j; else rep = { bytes: new Uint8Array(await f.arrayBuffer()), obj: j }; } catch {} }
+  if (!rep || !sigs) { $("vout").innerHTML = `<div class="check fail"><span class="ic">✗</span><span>Pick both report.json and report.sigs.json</span></div>`; return; }
+  const res = await verifySigs(rep.bytes, sigs);
+  const box = document.createElement("div"); showSigResult(res, box);
+  $("vout").innerHTML = `<div class="step">Report: ${esc(rep.obj.txid || "?")} · ${esc(rep.obj.verdict || "?")} · generated ${esc(rep.obj.generated_at || "?")} · sha256 ${Core.toHex(Core.sha256(rep.bytes)).slice(0, 16)}…</div>`;
+  $("vout").appendChild(box);
+}
+
+// ---------- wiring ----------
+$("f").addEventListener("submit", e => { e.preventDefault(); run(); });
+$("bfile").addEventListener("change", async e => { const f = e.target.files[0]; if (f) { $("bpick").value = 0; await importBundleText(await f.text()); } e.target.value = ""; });
+$("dlr").addEventListener("click", () => lastReport && download("report.json", lastReport.bytes, "application/json"));
+$("dlo").addEventListener("click", () => lastReport && lastReport.ots && download("report.json.ots", lastReport.ots, "application/octet-stream"));
+$("keys").addEventListener("change", async e => { await signReport([...e.target.files]); e.target.value = ""; });
+$("dls").addEventListener("click", () => lastReport && lastReport.sigs && download("report.sigs.json", JSON.stringify(lastReport.sigs, null, 2), "application/json"));
+$("vfiles").addEventListener("change", async e => { await verifyFiles([...e.target.files]); e.target.value = ""; });
+renderHistory();
+
+(async () => {
+  try { CPS = Core.loadCheckpoints(await (await fetch("checkpoints.json", { cache: "no-store" })).json()); } catch {}
+  $("cps").textContent = CPS ? `Main-chain anchor: ${CPS.headers.toLocaleString()} headers (genesis → ${CPS.tipHeight.toLocaleString()}) fully verified ${CPS.verifiedAt.replace("T", " ")}.` : "Checkpoints not loaded — main-chain proof unavailable.";
+  try { SIGNERS = await (await fetch("signers.json", { cache: "no-store" })).json(); } catch {}
+  $("signers").textContent = SIGNERS ? `Trusted signers: ${SIGNERS.signers.map(s => s.name).join(", ")} · threshold ${SIGNERS.threshold}-of-${SIGNERS.signers.length}${SIGNERS.demo ? " · DEMO KEYS — replace with your own" : ""}` : "No signers.json — signatures can be checked but not trusted.";
+  const q = new URLSearchParams(location.search).get("tx") || location.hash.slice(1);
+  if (q) { $("q").value = q; run(); }
+})();
+window.__app = { run, importBundleText, verifySigs, signReport, get report() { return lastReport; }, get cps() { return CPS; } };
+})();
+
+</script>
+</body>
+</html>
