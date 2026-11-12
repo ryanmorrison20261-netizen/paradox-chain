@@ -9,12 +9,20 @@
    "label": "3-tx test"
   },
   {
+   "file": "5_new_data.json",
+   "label": "New data"
+  },
+  {
    "file": "3_TAMPERED_amount_should_fail.json",
    "label": "TAMPERED amount"
   },
   {
    "file": "4_TAMPERED_chain_should_fail.json",
    "label": "TAMPERED chain"
+  },
+  {
+   "file": "6_TAMPERED_reward_should_fail.json",
+   "label": "TAMPERED coinbase"
   }
  ]
 }

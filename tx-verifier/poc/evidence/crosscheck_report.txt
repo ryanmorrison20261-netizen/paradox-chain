@@ -1,0 +1,40 @@
+CROSS-CHECK REPORT  2026-11-12T19:15:05+00:00
+txid   a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d
+block  00000000152340ca42227603908689183edc47355204e7aca59383b0aaac1fd8  (height 57043, 2010-05-22 18:16:31 UTC)
+confirmations 918,542  (tip 975584 000000000000000000016641ddffd204018c9351cb2678c88e769af064a5a20b)
+
+[PASS] Header is 80 bytes
+        80 bytes
+[PASS] Header proof-of-work
+        hash 00000000152340ca42227603908689183edc47355204e7aca59383b0aaac1fd8 <= target from bits 0x1c159c24 (difficulty 11.85)
+[PASS] Main chain: both explorers have this hash at its height
+        height 57043: mempool.space=00000000152340ca…, blockstream.info=00000000152340ca…
+[PASS] Raw header identical on mempool.space
+        010000008095126f08f377b1…
+[PASS] Raw header identical on blockstream.info
+        010000008095126f08f377b1…
+[PASS] Header chain links 57032..57049
+        each block's prev-hash equals the recomputed hash of the block before (18 headers)
+[PASS] Proof-of-work valid on every header in that range
+        18 headers
+[PASS] Timestamp > median of previous 11 blocks (consensus rule)
+        2010-05-22 18:16:31 UTC > MTP 2010-05-22 17:20:15 UTC
+[PASS] Timestamp consistent with following blocks (≤ 2h ahead)
+        next 6 blocks: 2010-05-22 18:26:08 UTC … 2010-05-22 18:45:25 UTC
+[PASS] Timestamp is in the past
+        2010-05-22 18:16:31 UTC
+[PASS] Difficulty bits match the retarget period
+        period starts at 56448, bits 0x1c159c24
+[PASS] Merkle root rebuilt from mempool.space txid list
+        2 txs -> 5c1d2211f598cd64…
+[PASS] Merkle root rebuilt from blockstream.info txid list
+        2 txs -> 5c1d2211f598cd64…
+[PASS] txid is in this block
+        position 1
+[PASS] Raw tx from mempool.space hashes to txid
+        23620 bytes
+[PASS] Raw tx from blockstream.info hashes to txid
+        23620 bytes
+
+RESULT: ALL CHECKS PASSED
+report.json sha256: 798cfea6e9d24319bfbd008e2e0e46a46fadc2c87e4855d75ec4cc8d16d683bd

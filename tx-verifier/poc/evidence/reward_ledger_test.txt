@@ -1,0 +1,58 @@
+1. Pizza tx · a1075db55d41… -> VERIFIED
+      ✓ Coinbase bd9075d78e65… proven at position 0 of the same block
+      ✓ Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)
+      ✓ Coinbase pays 50.99000000 BTC ≤ subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)
+2. 3-tx test · a1075db55d41… -> VERIFIED
+      ✓ Coinbase bd9075d78e65… proven at position 0 of the same block
+      ✓ Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)
+      ✓ Coinbase pays 50.99000000 BTC ≤ subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)
+3. 3-tx test · 8f53fa8d7f9e… -> VERIFIED
+      ✓ Coinbase bb8d844aec99… proven at position 0 of the same block
+      ✓ Subsidy at height 975,580 = 3.12500000 BTC (halving era 4; computed: 50 BTC >> 4)
+      ✓ Coinbase pays 3.19529778 BTC ≤ subsidy 3.12500000 + block fees 0.07029778 (fees: explorer data)
+4. 3-tx test · 08c2e2c0876b… -> VERIFIED
+      ✓ Coinbase 5cc357b6e2f6… proven at position 0 of the same block
+      ✓ Subsidy at height 975,582 = 3.12500000 BTC (halving era 4; computed: 50 BTC >> 4)
+      ✓ Coinbase pays 3.16242955 BTC ≤ subsidy 3.12500000 + block fees 0.03742955 (fees: explorer data)
+5. New data · c3a2778740b2… -> VERIFIED
+      ✓ Coinbase 5b533b35ccee… proven at position 0 of the same block
+      ✓ Subsidy at height 975,584 = 3.12500000 BTC (halving era 4; computed: 50 BTC >> 4)
+      ✓ Coinbase pays 3.14576006 BTC ≤ subsidy 3.12500000 + block fees 0.02076006 (fees: explorer data)
+6. New data · 867da54b0fd0… -> VERIFIED
+      ✓ Coinbase 82f876475bd7… proven at position 0 of the same block
+      ✓ Subsidy at height 53,305 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)
+      ✓ Coinbase pays 50.00000000 BTC ≤ subsidy 50.00000000 + block fees 0.00000000 (fees: explorer data)
+7. New data · 299151d323d3… -> VERIFIED
+      ✓ Coinbase 3041d161f7bf… proven at position 0 of the same block
+      ✓ Subsidy at height 972,198 = 3.12500000 BTC (halving era 4; computed: 50 BTC >> 4)
+      ✓ Coinbase pays 3.14900799 BTC ≤ subsidy 3.12500000 + block fees 0.02400799 (fees: explorer data)
+8. New data · 87793d6ba3ce… -> VERIFIED
+      ✓ Coinbase 3041d161f7bf… proven at position 0 of the same block
+      ✓ Subsidy at height 972,198 = 3.12500000 BTC (halving era 4; computed: 50 BTC >> 4)
+      ✓ Coinbase pays 3.14900799 BTC ≤ subsidy 3.12500000 + block fees 0.02400799 (fees: explorer data)
+9. TAMPERED amount · a1075db55d41… -> NOT VERIFIED
+      ✓ Coinbase bd9075d78e65… proven at position 0 of the same block
+      ✓ Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)
+      ✓ Coinbase pays 50.99000000 BTC ≤ subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)
+10. TAMPERED chain · a1075db55d41… -> NOT VERIFIED
+      ✓ Coinbase bd9075d78e65… proven at position 0 of the same block
+      ✓ Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)
+      ✓ Coinbase pays 50.99000000 BTC ≤ subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)
+11. TAMPERED coinbase · a1075db55d41… -> NOT VERIFIED
+      ✗ Coinbase bytes do not hash to the coinbase txid
+      ✗ Coinbase merkle proof does not place it at position 0 of this block
+      ✓ Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)
+      ✓ Coinbase pays 50.99000000 BTC ≤ subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)
+
+REWARD CARD (pizza):
+Block reward (calculated)
+Height → halving era	57,043 → era 0 (next halving at 210,000)
+Subsidy (50 BTC ÷ 2^0)	50.00000000
++ Block fees (explorer)	0.99000000
+= Max allowed reward	50.99000000
+Coinbase actually paid	50.99000000
+This tx's fee	0.99000000
+Coinbase txid	bd9075d78e65a98fb054…
+
+LEDGER: 11 transactions re-verified at 2026-11-12 19:34:33 UTC (min 1 confirmation; tampered entries should fail)
+JS errors: []

@@ -1,0 +1,10 @@
+headers verified : 975,585  (heights 0..975,584)
+time             : 1.9 s  (503,872 headers/s)
+genesis          : 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+tip              : 975584  000000000000000000016641ddffd204018c9351cb2678c88e769af064a5a20b
+total chainwork  : 0x157d2a47514eef49f894ff461  (~2^96)
+checkpoints      : 485 written to proof/checkpoints.json
+check   57043: MATCH  00000000152340ca42227603908689183edc47355204e7aca59383b0aaac1fd8
+check  975584: MATCH  000000000000000000016641ddffd204018c9351cb2678c88e769af064a5a20b
+
+RESULT: ALL RULES PASSED FOR EVERY BLOCK

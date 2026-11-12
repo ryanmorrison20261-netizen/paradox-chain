@@ -1,0 +1,17 @@
+anchor : Main-chain anchor: 975,585 headers (genesis → 975,584) fully verified 2026-11-12 19:18:10+00:00.
+signers: Trusted signers: alice, bob, carol · threshold 2-of-3 · DEMO KEYS — replace with your own
+
+== OFFLINE (network cut) ==
+2_pizza_only.json: VERIFIED | ✓ Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain → block height 5
+3_TAMPERED_amount_should_fail.json: NOT VERIFIED | ✓ Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain → block height 5
+4_TAMPERED_chain_should_fail.json: NOT VERIFIED | ✗ Chain header 501/1421 fails proof-of-work
+3-tx entry 1: VERIFIED
+3-tx entry 2: VERIFIED
+3-tx entry 3: VERIFIED
+report sha256: 376766a4f0c809ca… | ots: Timestamp failed: no calendar answered
+sign alice only      -> MULTISIG NOT MET — 1 of 3 trusted signers (need 2)
+sign alice twice     -> MULTISIG NOT MET — 1 of 3 trusted signers (need 2)
+sign alice + bob     -> MULTISIG VALID — 2 of 3 trusted signers (need 2)
+network attempts while offline: 24 hosts: ['a.pool.eternitywall.com', 'a.pool.opentimestamps.org', 'b.pool.opentimestamps.org'] (timestamp calendars only — all failed, as expected offline)
+audit trail: Audit trail: 9 timestamped steps, 2026-11-12T19:26:48.955Z → 2026-11-12T19:26:48.989Z, head bd5af59857a89031… (each step hash-linked to the previous; 
+JS errors: []

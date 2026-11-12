@@ -1,0 +1,21 @@
+8f53fa8d VERIFIED | outs: P2TR,P2WPKH | confs 1
+a1075db5 VERIFIED | outs: P2PKH | confs 918538
+bb8d844a VERIFIED | outs: P2PKH,OP_RETURN | confs 1
+c8acb8ba VERIFIED | outs: P2WPKH,P2WSH | confs 1
+ece86f1a VERIFIED | outs: P2WPKH,P2SH | confs 1
+pizza + correct address/amount: VERIFIED
+tampered tx length byte: ERROR — raw transaction: extra bytes after transaction
+tampered output VALUE (still parses): NOT VERIFIED — Raw transaction hashes to 7015e8f1bbb21e989edcd7c9dc50dae756354a8ffcafbcec492355a2cca502ca, not the txid you entered
+proof from a different tx: NOT VERIFIED — txid is NOT among the transactions this proof commits to
+tampered merkle hash: NOT VERIFIED — Merkle proof does NOT match the header's merkle root
+tampered header nonce (PoW): NOT VERIFIED — Block hash does NOT meet its proof-of-work target
+status with wrong block hash: NOT VERIFIED — Status block hash does not match the proven header
+wrong expected amount: NOT VERIFIED — 17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ receives 10000.00000000 BTC, expected 20000.00000000
+truncated tx hex: ERROR — raw transaction: data ends early (truncated paste?)
+no status/tip: INCLUDED IN BLOCK — confirmations not checked
+
+41 passed, 0 failed
+links shown: 4
+routed: {'#txhex': 758, '#mb': 1012, '#st': 144, '#tip': 6}
+UI verdict: VERIFIED
+JS errors: []

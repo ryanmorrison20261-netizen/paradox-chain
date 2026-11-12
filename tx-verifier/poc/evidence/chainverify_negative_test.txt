@@ -1,0 +1,4 @@
+
+RESULT: ERRORS FOUND
+  height 550000: proof-of-work fails
+  height 550001: prev-hash does not link

@@ -106,6 +106,24 @@ def fetch_bundle_entry(txid, cp_height=None):
             errs.append(f"{name}: {ex}")
     else:
         return {"txid": txid, "error": "; ".join(errs)}
+    # block reward data: coinbase tx + its merkle proof (verified by the page), fees (explorer)
+    bh = e["status"].get("block_hash")
+    if bh:
+        try:
+            base = SOURCES[e["source"]]
+            cbid = get(f"{base}/block/{bh}/txid/0", as_json=False)
+            e["reward"] = {
+                "coinbase_txid": cbid,
+                "coinbase_hex": get(f"{base}/tx/{cbid}/hex", as_json=False),
+                "coinbase_merkleblock_hex": get(f"{base}/tx/{cbid}/merkleblock-proof", as_json=False),
+                "tx_fee_sats": get(f"{base}/tx/{txid}").get("fee"),
+            }
+            try:
+                e["reward"]["total_fees_sats"] = get(f"https://mempool.space/api/v1/block/{bh}")["extras"]["totalFees"]
+            except Exception:
+                pass
+        except Exception as ex:
+            e["reward_error"] = str(ex)
     # headers from the block up to the next 2016-block checkpoint (main-chain proof)
     h = e["status"].get("block_height")
     if h is not None:

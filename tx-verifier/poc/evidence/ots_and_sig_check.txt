@@ -1,0 +1,17 @@
+== .ots built in the browser, checked with the official ots client ==
+425fae826728bc3cd84022db910a5eab1b8f92b19c46329ecbbd5ea7f4e11335  online_report.json
+File sha256 hash: 425fae826728bc3cd84022db910a5eab1b8f92b19c46329ecbbd5ea7f4e11335
+Timestamp:
+append 9c4ca03a8088eb05aad44b49eb6ba792
+sha256
+pending calendar attestations: 3
+Calendar https://alice.btc.calendar.opentimestamps.org: Pending confirmation in Bitcoin blockchain
+Calendar https://bob.btc.calendar.opentimestamps.org: Pending confirmation in Bitcoin blockchain
+Calendar https://finney.calendar.eternitywall.com: Pending confirmation in Bitcoin blockchain
+== CLI verify of browser-signed online report (bob+carol) ==
+report sha256 425fae826728bc3cd84022db910a5eab1b8f92b19c46329ecbbd5ea7f4e11335 (matches signature file)
+  [PASS] bob: signature valid, trusted key 'bob'
+  [PASS] carol: signature valid, trusted key 'carol'
+  [PASS] audit trail: 16 timestamped steps, 2026-11-12T19:27:25.223Z -> 2026-11-12T19:27:28.489Z, chain intact, head 9344f32e8f392554…
+
+MULTISIG VALID: 2 of 3 trusted signers (need 2)

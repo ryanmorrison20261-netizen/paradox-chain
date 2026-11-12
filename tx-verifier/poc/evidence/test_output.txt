@@ -1,0 +1,48 @@
+txid: a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d
+  [mempool.space] confirmed, block 57043 (2010-05-22 18:16 UTC), 918538 conf
+  [blockstream.info] confirmed, block 57043 (2010-05-22 18:16 UTC), 918538 conf
+  fee: 0.99000000 BTC
+  outputs:
+    10000.00000000 BTC  17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ  <-- expected
+
+VERDICT: VERIFIED
+== wrong amount
+
+VERDICT: NOT VERIFIED
+  - 17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ received 10000.00000000 BTC, expected 20000.00000000
+exit=1
+== wrong address
+VERDICT: NOT VERIFIED
+  - no output pays 1BoatSLRHtKNngkdXEeobR76b53LETtpyT
+exit=1
+== not found
+txid: abababababababababababababababababababababababababababababababab
+  [mempool.space] ERROR: transaction not found
+  [blockstream.info] ERROR: transaction not found
+
+VERDICT: ERROR
+  - no source could return this transaction
+exit=2
+== json
+{
+  "txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+  "verdict": "VERIFIED",
+  "min_conf": 3,
+  "problems": [],
+  "sources": [
+    {
+      "source": "mempool.space",
+      "confirmed": true,
+      "block_height": 57043,
+      "block_hash": "00000000152340ca42227603908689183edc47355204e7aca59383b0aaac1fd8",
+      "block_time": 1274552191,
+VERDICT: NOT VERIFIED
+  - only one source answered — not independently confirmed
+  - UNCONFIRMED (in mempool) — can still be replaced or dropped
+valid + matching output: VERIFIED []
+wrong amount: NOT VERIFIED [
+  '17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ received 10000.00000000 BTC, expected 20000.00000000'
+]
+bad txid: ERROR [ 'txid must be 64 hex characters' ]
+not found: ERROR [ 'no source could return this transaction' ]
+UI verdict: VERIFIED

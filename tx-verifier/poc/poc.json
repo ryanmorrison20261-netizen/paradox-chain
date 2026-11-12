@@ -1,0 +1,238 @@
+{
+  "format": "txproof-poc-v1",
+  "compiled_at": "2026-11-12T19:35:16+00:00",
+  "where_run": "Claude cloud workspace (Linux) + headless Chrome; not the user's Mac",
+  "live_page": "https://ryanmorrison20261-netizen.github.io/paradox-chain/tx-verifier/",
+  "repo_commit": "ryanmorrison20261-netizen/paradox-chain@0e1cdd8",
+  "chain_anchor": "000000000000000000016641ddffd204018c9351cb2678c88e769af064a5a20b",
+  "evidence": [
+    {
+      "title": "Live 2-explorer check (txcheck.py)",
+      "file": "evidence/test_output.txt",
+      "sha256": "0a6d487a64b61451f912a4b2500797620fadf220a5c77bba135995f8d572a672",
+      "bytes": 1661,
+      "recorded": "2026-11-12T18:49:11+00:00",
+      "key_lines": [
+        "VERDICT: VERIFIED",
+        "VERDICT: NOT VERIFIED",
+        "exit=1",
+        "VERDICT: NOT VERIFIED",
+        "exit=1",
+        "VERDICT: ERROR",
+        "exit=2",
+        "VERDICT: NOT VERIFIED"
+      ]
+    },
+    {
+      "title": "Proof math: 41 checks + tamper tests",
+      "file": "evidence/txproof_test_output.txt",
+      "sha256": "c6f3069bdeef63eb16368d4266fb1ba5d6b1859f37157bb2c8578d01998f9af6",
+      "bytes": 1328,
+      "recorded": "2026-11-12T18:53:37+00:00",
+      "key_lines": [
+        "8f53fa8d VERIFIED | outs: P2TR,P2WPKH | confs 1",
+        "a1075db5 VERIFIED | outs: P2PKH | confs 918538",
+        "bb8d844a VERIFIED | outs: P2PKH,OP_RETURN | confs 1",
+        "c8acb8ba VERIFIED | outs: P2WPKH,P2WSH | confs 1",
+        "ece86f1a VERIFIED | outs: P2WPKH,P2SH | confs 1",
+        "pizza + correct address/amount: VERIFIED",
+        "tampered tx length byte: ERROR \u2014 raw transaction: extra bytes after transaction",
+        "tampered output VALUE (still parses): NOT VERIFIED \u2014 Raw transaction hashes to 7015e8f1bbb21e989edcd7c9dc50dae756354a8ffcafbcec492355a2cca502ca, not the txid you entered"
+      ]
+    },
+    {
+      "title": "Bundle import (one-step)",
+      "file": "evidence/import_test_output.txt",
+      "sha256": "858302c5af3219fb302cf44a7f51cd7cd9b4e99e4ac49438afaf44df33b12681",
+      "bytes": 325,
+      "recorded": "2026-11-12T19:00:54+00:00",
+      "key_lines": [
+        "upload -> entry1: VERIFIED | picker visible: True",
+        "paste bundle -> VERIFIED",
+        "41 passed, 0 failed"
+      ]
+    },
+    {
+      "title": "Deep cross-check of pizza block, 16 checks",
+      "file": "evidence/crosscheck_report.txt",
+      "sha256": "e4d81012bd4ca14f25823fa3e7e1cdb62ed6baabe6109f0a7742641fe195fc46",
+      "bytes": 1976,
+      "recorded": "2026-11-12T19:15:05+00:00",
+      "key_lines": [
+        "[PASS] Main chain: both explorers have this hash at its height",
+        "[PASS] Timestamp > median of previous 11 blocks (consensus rule)",
+        "[PASS] Timestamp consistent with following blocks (\u2264 2h ahead)",
+        "[PASS] Timestamp is in the past",
+        "RESULT: ALL CHECKS PASSED"
+      ]
+    },
+    {
+      "title": "Tampered header (time +1s) rejected",
+      "file": "evidence/negative_test_tampered_time.txt",
+      "sha256": "247e396a2c71f1d4f97bf45833e73357c5a5b9e9f62e2ad88c345e00713a2a25",
+      "bytes": 405,
+      "recorded": "2026-11-12T19:15:20+00:00",
+      "key_lines": [
+        "[FAIL] Header proof-of-work",
+        "[FAIL] Block exists on the explorers",
+        "RESULT: SOME CHECKS FAILED"
+      ]
+    },
+    {
+      "title": "Full chain: every header genesis\u2192tip",
+      "file": "evidence/chainverify_output_refresh.txt",
+      "sha256": "43544fe103a48c266f966ae2f3e166534c97887a58065948cb77b7393afdbe86",
+      "bytes": 600,
+      "recorded": "2026-11-12T19:30:33+00:00",
+      "key_lines": [
+        "headers verified : 975,585  (heights 0..975,584)",
+        "time             : 1.9 s  (503,872 headers/s)",
+        "checkpoints      : 485 written to proof/checkpoints.json",
+        "check   57043: MATCH  00000000152340ca42227603908689183edc47355204e7aca59383b0aaac1fd8",
+        "check  975584: MATCH  000000000000000000016641ddffd204018c9351cb2678c88e769af064a5a20b",
+        "RESULT: ALL RULES PASSED FOR EVERY BLOCK"
+      ]
+    },
+    {
+      "title": "Full chain: 1 flipped bit caught",
+      "file": "evidence/chainverify_negative_test.txt",
+      "sha256": "9e075908df6347ceaebb82f59b7cec639fe762e26d3cbf3d056731a012fcf3b6",
+      "bytes": 100,
+      "recorded": "2026-11-12T19:18:16+00:00",
+      "key_lines": [
+        "RESULT: ERRORS FOUND",
+        "height 550000: proof-of-work fails",
+        "height 550001: prev-hash does not link"
+      ]
+    },
+    {
+      "title": "Offline mode (network cut) + browser multisig",
+      "file": "evidence/offline_test_output.txt",
+      "sha256": "4f0b331d22972c1974d3c878866807bbbd79884519b62184d20edf71b43823ac",
+      "bytes": 1399,
+      "recorded": "2026-11-12T19:26:50+00:00",
+      "key_lines": [
+        "signers: Trusted signers: alice, bob, carol \u00b7 threshold 2-of-3 \u00b7 DEMO KEYS \u2014 replace with your own",
+        "== OFFLINE (network cut) ==",
+        "2_pizza_only.json: VERIFIED | \u2713 Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain \u2192 block height 5",
+        "3_TAMPERED_amount_should_fail.json: NOT VERIFIED | \u2713 Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain \u2192 block height 5",
+        "4_TAMPERED_chain_should_fail.json: NOT VERIFIED | \u2717 Chain header 501/1421 fails proof-of-work",
+        "3-tx entry 1: VERIFIED",
+        "3-tx entry 2: VERIFIED",
+        "3-tx entry 3: VERIFIED"
+      ]
+    },
+    {
+      "title": "CLI \u2194 browser signatures, attacker cases",
+      "file": "evidence/cli_cross_test.txt",
+      "sha256": "68e061fc6882b3bf07d29a5c37ba57fc2f76634585ed13d268259a37f4156a16",
+      "bytes": 1413,
+      "recorded": "2026-11-12T19:26:59+00:00",
+      "key_lines": [
+        "== CLI cross-check of browser-made signatures (offline report) ==",
+        "MULTISIG VALID: 2 of 3 trusted signers (need 2)",
+        "== tampered report (verdict text edited) ==",
+        "MULTISIG NOT MET: 0 of 3 trusted signers (need 2)",
+        "== audit-trail step edited + sigs regenerated by attacker with untrusted key ==",
+        "[FAIL] audit trail broken at step 3: check: Merkle proof rebuilds the block header's merkle root",
+        "MULTISIG NOT MET: 1 of 3 trusted signers (need 2)",
+        "== CLI-signed alice+carol on the original report =="
+      ]
+    },
+    {
+      "title": "Online: live pull, flow, OTS, address, follow",
+      "file": "evidence/online_test_output.txt",
+      "sha256": "494c9e66a02b20bfcab22d9832d8b278be6faf1d0595f0723483dbddbf082859",
+      "bytes": 3046,
+      "recorded": "2026-11-12T19:28:36+00:00",
+      "key_lines": [
+        "== ONLINE 1: pizza tx, expected 17SkEw\u2026 10000 BTC ==",
+        "verdict: VERIFIED",
+        "flow: Money flow \u00b7 2 address(es) \u00b7 tap a txid to follow that path",
+        "ots: Timestamp pending on 3/3 calendars (a.pool.opentimestamps.org, b.pool.opentimestamps.org, a.pool.eternitywall.com). Anchors into a",
+        "multisig bob+carol: MULTISIG VALID \u2014 2 of 3 trusted signers (need 2)",
+        "== ONLINE 2: newest block tx (newer than checkpoints) == c3a2778740b25845",
+        "verdict: VERIFIED",
+        "== ONLINE 3: address autocomplete \u2192 pick \u2192 verify =="
+      ]
+    },
+    {
+      "title": ".ots from browser accepted by official ots client",
+      "file": "evidence/ots_and_sig_check.txt",
+      "sha256": "1edad12e2ae499f7dfa52bb76967466d5db1a8e6805f7f78b18d2f3b5634bf88",
+      "bytes": 1072,
+      "recorded": "2026-11-12T19:28:45+00:00",
+      "key_lines": [
+        "File sha256 hash: 425fae826728bc3cd84022db910a5eab1b8f92b19c46329ecbbd5ea7f4e11335",
+        "Calendar https://alice.btc.calendar.opentimestamps.org: Pending confirmation in Bitcoin blockchain",
+        "Calendar https://bob.btc.calendar.opentimestamps.org: Pending confirmation in Bitcoin blockchain",
+        "Calendar https://finney.calendar.eternitywall.com: Pending confirmation in Bitcoin blockchain",
+        "MULTISIG VALID: 2 of 3 trusted signers (need 2)"
+      ]
+    },
+    {
+      "title": "Public URL end-to-end",
+      "file": "evidence/live_url_test_output.txt",
+      "sha256": "14cc3067f2a16de276a2f8a884d7a1b5235950255d682ee9270946739bd0ac6e",
+      "bytes": 394,
+      "recorded": "2026-11-12T19:30:19+00:00",
+      "key_lines": [
+        "LIVE URL pizza tx -> VERIFIED",
+        "checks passed: 10 | failed: 0",
+        "flow: Money flow \u00b7 2 address(es) \u00b7 tap a txid to follow that path",
+        "ots: Timestamp pending on 3/3 calendars (a.pool.opentimestamps.org, b.pool.opentimest",
+        "trail: Audit trail: 15 timestamped steps, 2026-11-12T19:30:13.747Z \u2192 2026-11-12T19:30:17.207Z, head bd",
+        "multisig: MULTISIG VALID \u2014 2 of 3 trusted signers (need 2)",
+        "JS errors: []"
+      ]
+    },
+    {
+      "title": "New data: 4 more txs bundled",
+      "file": "evidence/new_data_bundle_run.txt",
+      "sha256": "f68b0acebf4af638a11b4255b838c917ad755b025677eaa89336be9990512058",
+      "bytes": 420,
+      "recorded": "2026-11-12T19:30:54+00:00",
+      "key_lines": [
+        "VERDICT: VERIFIED",
+        "VERDICT: VERIFIED",
+        "VERDICT: VERIFIED",
+        "VERDICT: VERIFIED",
+        "bundle: wrote site/bundles/5_new_data.json (4/4 tx with proofs)"
+      ]
+    },
+    {
+      "title": "Artifact with new data: 10 entries",
+      "file": "evidence/artifact_new_data_test.txt",
+      "sha256": "ba5a7d6677326be8791de08391edba7e2d803c4072641490728ff3c39465f133",
+      "bytes": 2184,
+      "recorded": "2026-11-12T19:31:16+00:00",
+      "key_lines": [
+        "1. Pizza tx \u00b7 a1075db55d41\u2026 -> VERIFIED",
+        "2. 3-tx test \u00b7 a1075db55d41\u2026 -> VERIFIED",
+        "3. 3-tx test \u00b7 8f53fa8d7f9e\u2026 -> VERIFIED",
+        "4. 3-tx test \u00b7 08c2e2c0876b\u2026 -> VERIFIED",
+        "5. New data \u00b7 c3a2778740b2\u2026 -> NOT VERIFIED",
+        "\u2713 Block is checkpoint 975,584 of the fully verified chain (975,585 headers, all rules passed)",
+        "6. New data \u00b7 867da54b0fd0\u2026 -> VERIFIED",
+        "7. New data \u00b7 299151d323d3\u2026 -> VERIFIED"
+      ]
+    },
+    {
+      "title": "Reward calculation + POC ledger (11 entries, tampered coinbase caught)",
+      "file": "evidence/reward_ledger_test.txt",
+      "sha256": "659ec0f27c0fecc275af3a1d364d647b22877fe0afd70e2ec20d3610e241c029",
+      "bytes": 4045,
+      "recorded": "2026-11-12T19:34:37+00:00",
+      "key_lines": [
+        "\u2713 Coinbase bd9075d78e65\u2026 proven at position 0 of the same block",
+        "\u2713 Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)",
+        "\u2713 Coinbase pays 50.99000000 BTC \u2264 subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)",
+        "\u2713 Coinbase bd9075d78e65\u2026 proven at position 0 of the same block",
+        "\u2713 Subsidy at height 57,043 = 50.00000000 BTC (halving era 0; computed: 50 BTC >> 0)",
+        "\u2713 Coinbase pays 50.99000000 BTC \u2264 subsidy 50.00000000 + block fees 0.99000000 (fees: explorer data)",
+        "\u2713 Coinbase bb8d844aec99\u2026 proven at position 0 of the same block",
+        "\u2713 Subsidy at height 975,580 = 3.12500000 BTC (halving era 4; computed: 50 BTC >> 4)"
+      ]
+    }
+  ]
+}

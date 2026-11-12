@@ -1,0 +1,8 @@
+upload -> entry1: VERIFIED | picker visible: True
+pick 2: NOT VERIFIED
+pick 2, min-conf 1: VERIFIED
+pick 3 (unconfirmed): ERROR | msg: No proof in bundle for this tx: mempool.space: HTTP Error 40
+paste bundle -> VERIFIED
+bad file msg: That isn't a txproof bundle (format txproof-bundle-v1).
+JS errors: []
+41 passed, 0 failed

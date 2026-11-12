@@ -1,0 +1,47 @@
+== ONLINE 1: pizza tx, expected 17SkEw… 10000 BTC ==
+verdict: VERIFIED
+  step: · Pulling raw data from mempool.space and blockstream.info… 19:27:25.223Z · 20dd93306b18
+  step: ✓ Both sources returned identical raw transaction bytes 19:27:26.043Z · 4af80113f802
+  step: ✓ Both sources agree on confirmation and block 19:27:26.043Z · f80c8c2f56d0
+  step: · Fetching 1433 block headers (57032–58464) for chain + timestamp checks… 19:27:26.139Z · 0c2a6e88b8f9
+  check: ✓ Raw transaction hashes to this txid
+  check: ✓ Merkle proof rebuilds the block header's merkle root
+  check: ✓ txid is committed in the block (position 1 of 2)
+  check: ✓ Block hash meets its proof-of-work target (difficulty 12)
+  check: ✓ Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain → block height 57,043 is on the main chain
+  check: ✓ Status block hash matches the proven header (height 57043)
+  check: ✓ 918,542 confirmations (need 3) — from pasted tip
+  check: ✓ 17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ receives 10000.00000000 BTC
+  check: ✓ Header at height 57043 from the header source equals the proven block header
+  check: ✓ Block time 2010-05-22 18:16:31 UTC > median of previous 11 blocks 2010-05-22 17:20:15 UTC (consensus rule)
+  check: ✓ Block time is not more than 2 h in the future
+flow: Money flow · 2 address(es) · tap a txid to follow that path
+  first input : 1XPTgDRhN8RFnzniWCddobD9iKZatrvH4 | 150.00000000 | ← 867da54b0f…:0
+  output     : 17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ | 10000.00000000 | → cca7507897…:0
+ots: Timestamp pending on 3/3 calendars (a.pool.opentimestamps.org, b.pool.opentimestamps.org, a.pool.eternitywall.com). Anchors into a
+trail: Audit trail: 16 timestamped steps, 2026-11-12T19:27:25.223Z → 2026-11-12T19:27:28.489Z, head 9344f32e8f392554… (each ste
+multisig bob+carol: MULTISIG VALID — 2 of 3 trusted signers (need 2)
+
+== ONLINE 2: newest block tx (newer than checkpoints) == c3a2778740b25845
+verdict: VERIFIED
+   ['✓ Block time 2026-11-12 19:18:14 UTC > median of previous 11 blocks 2026-11-12 18:03:12 UTC (consensus rule)']
+
+== ONLINE 3: address autocomplete → pick → verify ==
+90 txs · balance 0.02317572 BTC · newest 50 shown — tap one to verify
+picks: 50
+picked oldest shown -> 87793d6ba3ceb08a VERIFIED
+
+== ONLINE 4: follow a path from the flow view ==
+followed -> 299151d323d3d7a1 NOT VERIFIED
+
+== Page verifies CLI-signed report (alice+carol) ==
+MULTISIG VALID — 2 of 3 trusted signers (need 2)
+attacker report: MULTISIG NOT MET — 1 of 3 trusted signers (need 2)
+
+link ?tx= auto-run: VERIFIED
+JS errors: []
+Main-chain anchor: 975,001 headers (genesis → 975,000) fully verified 2026-11-12 19:28:28+00:00.
+VERIFIED
+   · Fetching 581 block headers (975000–975580) for chain + timestamp checks… 19:28:31.475Z · 3f4e7db62a07
+   ✓ Linked forward by 580 PoW-checked headers from the verified checkpoint tip 975000 → block 975580 is on the main chain
+follow fix: 299151d3 -> VERIFIED | addr field: ''

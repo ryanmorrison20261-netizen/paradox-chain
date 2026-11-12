@@ -1,0 +1,26 @@
+anchor: Main-chain anchor: 975,585 headers (genesis → 975,584) fully verified 2026-11-12 19:30:33+00:00 — every block's PoW, links, difficulty and timestamps.
+auto: Auto-imported 10 transaction(s) from 5 bundle(s) stored in this page. Pick one below, or upload your own.
+1. Pizza tx · a1075db55d41… -> VERIFIED
+     ✓ Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain → block height 57,043 is on the main chain
+2. 3-tx test · a1075db55d41… -> VERIFIED
+     ✓ Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain → block height 57,043 is on the main chain
+3. 3-tx test · 8f53fa8d7f9e… -> VERIFIED
+     ✓ Linked by 4 headers (each PoW-checked) to checkpoint 975,584 of the fully verified chain → block height 975,580 is on the main chain
+4. 3-tx test · 08c2e2c0876b… -> VERIFIED
+     ✓ Linked by 2 headers (each PoW-checked) to checkpoint 975,584 of the fully verified chain → block height 975,582 is on the main chain
+5. New data · c3a2778740b2… -> NOT VERIFIED
+     ✓ Block is checkpoint 975,584 of the fully verified chain (975,585 headers, all rules passed)
+6. New data · 867da54b0fd0… -> VERIFIED
+     ✓ Linked by 1,127 headers (each PoW-checked) to checkpoint 54,432 of the fully verified chain → block height 53,305 is on the main chain
+7. New data · 299151d323d3… -> VERIFIED
+     ✓ Linked by 1,530 headers (each PoW-checked) to checkpoint 973,728 of the fully verified chain → block height 972,198 is on the main chain
+8. New data · 87793d6ba3ce… -> VERIFIED
+     ✓ Linked by 1,530 headers (each PoW-checked) to checkpoint 973,728 of the fully verified chain → block height 972,198 is on the main chain
+9. TAMPERED amount · a1075db55d41… -> NOT VERIFIED
+     ✓ Linked by 1,421 headers (each PoW-checked) to checkpoint 58,464 of the fully verified chain → block height 57,043 is on the main chain
+10. TAMPERED chain · a1075db55d41… -> NOT VERIFIED
+     ✗ Chain header 501/1421 fails proof-of-work
+JS errors: []
+41 passed, 0 failed
+entry 5 reason: NOT VERIFIED | Only 1 confirmation(s), need 3
+entry 5 with min-conf 1: VERIFIED

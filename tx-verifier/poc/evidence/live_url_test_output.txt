@@ -1,0 +1,7 @@
+LIVE URL pizza tx -> VERIFIED
+checks passed: 10 | failed: 0
+flow: Money flow · 2 address(es) · tap a txid to follow that path
+ots: Timestamp pending on 3/3 calendars (a.pool.opentimestamps.org, b.pool.opentimest
+trail: Audit trail: 15 timestamped steps, 2026-11-12T19:30:13.747Z → 2026-11-12T19:30:17.207Z, head bd
+multisig: MULTISIG VALID — 2 of 3 trusted signers (need 2)
+JS errors: []

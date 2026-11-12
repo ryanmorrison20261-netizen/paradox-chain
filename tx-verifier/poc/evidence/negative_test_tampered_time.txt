@@ -1,0 +1,8 @@
+[PASS] Header is 80 bytes
+        80 bytes
+[FAIL] Header proof-of-work
+        hash cc8a8d6aaa83e9468e6e22fd58564cc291faa3616992fc4e6cc5ee4a5caef1a4 <= target from bits 0x1c159c24 (difficulty 11.85)
+[FAIL] Block exists on the explorers
+        hash cc8a8d6aaa83e9468e6e22fd58564cc291faa3616992fc4e6cc5ee4a5caef1a4 not found (HTTP 404) — header is altered or not from Bitcoin
+
+RESULT: SOME CHECKS FAILED
