@@ -427,7 +427,7 @@ const API = { mempool: "https://mempool.space/api", blockstream: "https://blocks
 const HDN = "https://block-dn.org/headers/";
 const CALENDARS = ["https://a.pool.opentimestamps.org", "https://b.pool.opentimestamps.org", "https://a.pool.eternitywall.com"];
 const enc = new TextEncoder();
-let CPS = null, SIGNERS = null, lastReport = null;   // lastReport = { bytes, obj }
+let CPS = null, SIGNERS = null, lastReport = null, POOLS = null;   // lastReport = { bytes, obj }
 
 // ---------- helpers ----------
 async function getText(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${new URL(url).host} HTTP ${r.status}`); return (await r.text()).trim(); }
@@ -548,7 +548,14 @@ async function run() {
       extra.push([t <= Date.now() / 1000 + 7200 ? "pass" : "fail", `Block time is not more than 2 h in the future`]);
     } else extra.push(["skip", "checkpoints.json not loaded — main chain not checked"]);
 
-    finish({ txid, txHex: hexA, mbHex, statusJson: JSON.stringify(stA), tip, tipHash, chainHex, extra });
+    let reward = null;
+    try {
+      const cbid = await getText(`${API.mempool}/block/${stA.block_hash}/txid/0`);
+      reward = { coinbase_txid: cbid, coinbase_hex: await getText(`${API.mempool}/tx/${cbid}/hex`),
+        coinbase_merkleblock_hex: await getText(`${API.mempool}/tx/${cbid}/merkleblock-proof`), tx_fee_sats: stA.fee };
+      try { reward.total_fees_sats = (await getJson(`${API.mempool}/v1/block/${stA.block_hash}`)).extras.totalFees; } catch {}
+    } catch {}
+    finish({ txid, txHex: hexA, mbHex, statusJson: JSON.stringify(stA), tip, tipHash, chainHex, extra, reward });
     flow(txid).catch(e => { $("flow").innerHTML = `<div class="step">Flow lookup failed: ${esc(e.message)}</div>`; });
   } catch (e) {
     log("Stopped: " + e.message, "fail");
@@ -560,7 +567,7 @@ const iso = t => new Date(t * 1000).toISOString().replace("T", " ").slice(0, 19)
 function finish(d) {
   const rep = Core.verify({ txid: d.txid, txHex: d.txHex, mbHex: d.mbHex || "", statusJson: d.statusJson, tip: d.tip,
     minConf: Math.max(0, parseInt($("minc").value, 10) || 0), address: $("addr").value.trim(), amount: $("amt").value.trim() || null,
-    chainHex: d.chainHex || "", checkpoints: CPS });
+    chainHex: d.chainHex || "", checkpoints: CPS, reward: d.reward || null, pools: POOLS });
   for (const [state, text] of d.extra || []) rep.checks.push({ state, text });
   for (const n of $("log").querySelectorAll(".check.fail")) rep.checks.push({ state: "fail", text: n.textContent.slice(1) });
   const fails = rep.checks.filter(c => c.state === "fail").map(c => c.text);
@@ -577,6 +584,13 @@ function render(rep, d) {
   let h = `<div class="verdict v-${rep.cls}">${esc(rep.verdict)}${rep.problems && rep.problems.length ? "<ul>" + rep.problems.map(p => `<li>${esc(p)}</li>`).join("") + "</ul>" : ""}</div>`;
   h += `<div class="card"><h2>Checks</h2>` + rep.checks.map(c => `<div class="check ${c.state}"><span class="ic">${icon[c.state]}</span><span>${esc(c.text)}</span></div>`).join("") + `</div>`;
   if (rep.header) h += `<div class="card"><h2>Proven block</h2><div class="mono">${rep.header.hash}</div><div class="step">${iso(rep.header.time)} · ${rep.nTx.toLocaleString()} txs${rep.height != null ? " · height " + rep.height.toLocaleString() : ""}${rep.confs != null ? " · " + rep.confs.toLocaleString() + " confirmations" : ""}</div></div>`;
+  if (rep.reward && rep.reward.subsidy != null) { const r = rep.reward;
+    h += `<div class="card"><h2>Block reward (calculated)</h2><table>
+      <tr><td>Height → era</td><td class="v mono">${rep.height.toLocaleString()} → era ${r.era}</td></tr>
+      <tr><td>Subsidy (50÷2^${r.era})</td><td class="v mono">${Core.fmt(r.subsidy)}</td></tr>
+      ${r.fees != null ? `<tr><td>+ Block fees</td><td class="v mono">${Core.fmt(r.fees)}</td></tr>` : ""}
+      <tr><td>Coinbase paid</td><td class="v mono">${Core.fmt(r.paid)}</td></tr>
+      <tr><td>Mined by</td><td class="v mono">${r.pool && r.pool.name ? esc(r.pool.name) : "unidentified"}</td></tr></table></div>`; }
   if (rep.outputs) { const addr = $("addr").value.trim();
     h += `<div class="card"><h2>Outputs (decoded from raw bytes)</h2><table>` + rep.outputs.map(o => `<tr class="${addr && o.address === addr ? "hit" : ""}"><td class="mono">${o.address ? esc(o.address) : `<span class="step">${o.type}</span>`}</td><td class="v mono">${Core.fmt(o.sats)}</td></tr>`).join("") + `</table></div>`; }
   $("result").innerHTML = h;
@@ -611,6 +625,7 @@ async function buildReport(rep, d) {
     format: "txproof-report-v1", generated_at: new Date().toISOString(), generator: location.href.split("#")[0],
     txid: d.txid, verdict: rep.verdict, checks: rep.checks.map(c => ({ state: c.state, text: c.text })),
     block: rep.header ? { hash: rep.header.hash, height: rep.height, time: rep.header.time } : null,
+    reward: rep.reward && rep.reward.subsidy != null ? { subsidy_btc: Core.fmt(rep.reward.subsidy), fees_btc: rep.reward.fees != null ? Core.fmt(rep.reward.fees) : null, coinbase_paid_btc: Core.fmt(rep.reward.paid), mined_by: rep.reward.pool && rep.reward.pool.name || null, coinbase_txid: rep.reward.coinbaseTxid } : null,
     confirmations: rep.confs, chain_tip_seen: d.tip ? { height: +d.tip, hash: d.tipHash } : null,
     checkpoint_anchor: CPS ? { tip_height: CPS.tipHeight, tip_hash: CPS.tipHash, verified_at: CPS.verifiedAt } : null,
     outputs: (rep.outputs || []).map(o => ({ type: o.type, address: o.address, btc: Core.fmt(o.sats) })),
@@ -710,7 +725,7 @@ async function importBundleText(text) {
   $("q").value = e.txid; $("log").innerHTML = ""; $("picks").innerHTML = ""; TRAIL = [];
   log(`Offline mode: verifying bundle data (made ${b.createdAt || "?"}) — no network used`, "info");
   if (e.error) { log("Bundle has no proof for this tx: " + e.error, "fail"); return; }
-  finish({ txid: e.txid, txHex: e.tx_hex, mbHex: e.merkleblock_hex, statusJson: JSON.stringify(e.status), tip: e.tip_height, chainHex: e.chain_headers_hex || "", extra: [] });
+  finish({ txid: e.txid, txHex: e.tx_hex, mbHex: e.merkleblock_hex, statusJson: JSON.stringify(e.status), tip: e.tip_height, chainHex: e.chain_headers_hex || "", extra: [], reward: e.reward || null });
 }
 
 // ---------- verify an existing signed report ----------
@@ -736,6 +751,7 @@ renderHistory();
 
 (async () => {
   try { CPS = Core.loadCheckpoints(await (await fetch("checkpoints.json", { cache: "no-store" })).json()); } catch {}
+  try { POOLS = await (await fetch("pools.json", { cache: "no-store" })).json(); } catch {}
   $("cps").textContent = CPS ? `Main-chain anchor: ${CPS.headers.toLocaleString()} headers (genesis → ${CPS.tipHeight.toLocaleString()}) fully verified ${CPS.verifiedAt.replace("T", " ")}.` : "Checkpoints not loaded — main-chain proof unavailable.";
   try { SIGNERS = await (await fetch("signers.json", { cache: "no-store" })).json(); } catch {}
   $("signers").textContent = SIGNERS ? `Trusted signers: ${SIGNERS.signers.map(s => s.name).join(", ")} · threshold ${SIGNERS.threshold}-of-${SIGNERS.signers.length}${SIGNERS.demo ? " · DEMO KEYS — replace with your own" : ""}` : "No signers.json — signatures can be checked but not trusted.";
