@@ -162,7 +162,10 @@ const Core = (() => {
     if (bytes[r.p] === 0x00 && bytes[r.p + 1] === 0x01) { segwit = true; r.p += 2; }
     const ioStart = r.p;
     const nIn = r.vi(); if (nIn === 0) throw new Error("transaction has no inputs");
-    for (let i = 0; i < nIn; i++) { r.bytes(36); r.bytes(r.vi()); r.bytes(4); }
+    let coinbase = false, cbScript = null;
+    for (let i = 0; i < nIn; i++) { const op = r.bytes(36); const sig = r.bytes(r.vi()); r.bytes(4);
+      if (i === 0) cbScript = sig;
+      if (nIn === 1 && op.subarray(0, 32).every(x => x === 0) && op[32] === 0xff && op[33] === 0xff && op[34] === 0xff && op[35] === 0xff) coinbase = true; }
     const nOut = r.vi(); const outs = [];
     for (let i = 0; i < nOut; i++) { const value = r.u64(); const script = r.bytes(r.vi()); outs.push({ value, script }); }
     const ioEnd = r.p;
@@ -170,7 +173,7 @@ const Core = (() => {
     const lock = r.bytes(4);
     if (!r.done) throw new Error("extra bytes after transaction");
     const stripped = concat(version, bytes.subarray(ioStart, ioEnd), lock);
-    return { txid: revHex(dsha(stripped)), wtxid: revHex(dsha(bytes.subarray(start))), segwit, nIn, outs };
+    return { txid: revHex(dsha(stripped)), wtxid: revHex(dsha(bytes.subarray(start))), segwit, nIn, outs, coinbase, cbScript };
   }
 
   // ---- address encoding ----
@@ -279,7 +282,7 @@ const Core = (() => {
     return { state: "pass", text: `Linked by ${n.toLocaleString()} headers (each PoW-checked) to checkpoint ${cpH.toLocaleString()} of the fully verified chain → block height ${(cpH - n).toLocaleString()} is on the main chain`, height: cpH - n };
   }
 
-  function verify({ txid, txHex, mbHex, statusJson, tip, minConf = 3, address = "", amount = null, chainHex = "", checkpoints = null }) {
+  function verify({ txid, txHex, mbHex, statusJson, tip, minConf = 3, address = "", amount = null, chainHex = "", checkpoints = null, reward = null, pools = null }) {
     const checks = []; const add = (state, text) => checks.push({ state, text });
     let chain = null;
     const want = String(txid || "").trim().toLowerCase();
@@ -338,13 +341,15 @@ const Core = (() => {
       else add("pass", `${address} receives ${fmt(paid)} BTC`);
     }
 
+    let rw = null;
+    if (hdr && (reward || checks.length)) { rw = rewardProof(reward, hdr, height, pools); rw.checks.forEach(c => checks.push(c)); }
     const fails = checks.filter(c => c.state === "fail").map(c => c.text);
     const coreOk = fails.length === 0 && !!mres;
     let verdict, cls;
     if (fails.length) { verdict = "NOT VERIFIED"; cls = mres || tx.txid === want ? "warn" : "bad"; }
     else if (coreOk && confs != null) { verdict = "VERIFIED"; cls = "ok"; }
     else { verdict = "INCLUDED IN BLOCK — confirmations not checked"; cls = "part"; }
-    return { verdict, cls, problems: fails, checks, tx, outputs, header: hdr, nTx: mb && mb.nTx, height, confs, txid: want, chain };
+    return { verdict, cls, problems: fails, checks, tx, outputs, header: hdr, nTx: mb && mb.nTx, height, confs, txid: want, chain, reward: rw };
   }
   const fmt = sats => { const s = sats.toString().padStart(9, "0"); return s.slice(0, -8) + "." + s.slice(-8); };
 
@@ -365,12 +370,51 @@ const Core = (() => {
     }
     return null;
   }
+  // block reward: subsidy from the proven height (halving every 210,000), coinbase proven in the same block
+  const subsidy = h => { const e = Math.floor(h / 210000); return e >= 64 ? 0n : 5000000000n >> BigInt(e); };
+  function matchPool(cb, pools) {
+    if (!cb || !pools) return null;
+    const tagAscii = cb.cbScript ? Array.from(cb.cbScript, b => (b >= 32 && b < 127) ? String.fromCharCode(b) : ".").join("") : "";
+    const outAddrs = cb.outs.map(o => scriptInfo(o.script).address).filter(Boolean);
+    for (const p of pools) {
+      for (const t of (p.tags || [])) if (t && tagAscii.includes(t)) return { name: p.name, by: "coinbase tag", evidence: t, link: p.link };
+      for (const a of (p.addresses || [])) if (outAddrs.includes(a)) return { name: p.name, by: "payout address", evidence: a, link: p.link };
+    }
+    return { name: null, tag: tagAscii.replace(/^[^ -~]+/, "").slice(0, 40) };
+  }
+  function rewardProof(rw, hdr, height, pools) {
+    const out = { checks: [] }; const add = (state, text) => out.checks.push({ state, text });
+    if (!rw || !rw.coinbase_hex) { add("skip", "No coinbase data — block reward not checked"); return out; }
+    let cb; try { cb = parseTx(hexToBytes(rw.coinbase_hex)); } catch (e) { add("fail", "Coinbase tx unreadable: " + e.message); return out; }
+    if (!cb.coinbase) add("fail", "Transaction 0 is not a coinbase (input is not the null outpoint)");
+    if (cb.txid !== rw.coinbase_txid) add("fail", "Coinbase bytes do not hash to the coinbase txid");
+    try {
+      const mb = parseMerkleBlock(hexToBytes(rw.coinbase_merkleblock_hex)); const m = extractMatches(mb); const ch = headerInfo(mb.header);
+      const inBlock = ch.hash === hdr.hash && toHex(m.root) === toHex(ch.merkleRoot) && m.matches.some(x => x.pos === 0 && revHex(x.hash) === cb.txid);
+      add(inBlock ? "pass" : "fail", inBlock ? `Coinbase ${cb.txid.slice(0, 12)}… proven at position 0 of the same block` : "Coinbase merkle proof does not place it at position 0 of this block");
+    } catch (e) { add("fail", "Coinbase merkle proof invalid: " + e.message); }
+    const paid = cb.outs.reduce((a, o) => a + o.value, 0n);
+    out.coinbaseTxid = cb.txid; out.paid = paid;
+    const pm = matchPool(cb, pools); out.pool = pm;
+    if (pm && pm.name) add("pass", `Mined by ${pm.name} — identified by ${pm.by} (${pm.evidence.length > 24 ? pm.evidence.slice(0, 24) + "…" : pm.evidence})`);
+    else add("info", `Mining pool not identified${pm && pm.tag ? ` · coinbase tag "${pm.tag}"` : ""}`);
+    if (height != null) {
+      const sub = subsidy(height); out.subsidy = sub; out.era = Math.floor(height / 210000); out.nextHalving = (out.era + 1) * 210000;
+      add("pass", `Subsidy at height ${height.toLocaleString()} = ${fmt(sub)} BTC (halving era ${out.era}; computed: 50 BTC >> ${out.era})`);
+      if (rw.total_fees_sats != null) {
+        const fees = BigInt(rw.total_fees_sats); out.fees = fees;
+        add(paid <= sub + fees ? "pass" : "fail", `Coinbase pays ${fmt(paid)} BTC ${paid <= sub + fees ? "≤" : ">"} subsidy ${fmt(sub)} + block fees ${fmt(fees)} (fees: explorer data)`);
+      } else add("info", `Coinbase pays ${fmt(paid)} BTC; miner fees implied ${fmt(paid > sub ? paid - sub : 0n)} BTC`);
+    } else add("skip", "Block height unknown — subsidy not computed");
+    if (rw.tx_fee_sats != null) { out.txFee = BigInt(rw.tx_fee_sats); add("info", `This transaction's fee: ${fmt(out.txFee)} BTC (explorer data)`); }
+    return out;
+  }
   function loadCheckpoints(j) {
     if (!j || j.format !== "chain-checkpoints-v1" || !j.all_rules_passed) return null;
     return { headers: j.headers, tipHeight: j.tip_height, tipHash: j.tip_hash, verifiedAt: j.verified_at,
              byHash: new Map(j.checkpoints.map(c => [c.hash, c.height])) };
   }
-  return { verify, classify, parseBundle, loadCheckpoints, fmt, sha256, toHex, hexToBytes, headerInfo, revHex, dsha, parseMerkleBlock, concat };
+  return { verify, classify, parseBundle, loadCheckpoints, rewardProof, matchPool, subsidy, fmt, sha256, toHex, hexToBytes, headerInfo, revHex, dsha, parseMerkleBlock, concat };
 })();
 /* =================== end core =================== */
 </script>

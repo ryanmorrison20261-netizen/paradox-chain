@@ -182,8 +182,9 @@ const Core = (() => {
     if (bytes[r.p] === 0x00 && bytes[r.p + 1] === 0x01) { segwit = true; r.p += 2; }
     const ioStart = r.p;
     const nIn = r.vi(); if (nIn === 0) throw new Error("transaction has no inputs");
-    let coinbase = false;
-    for (let i = 0; i < nIn; i++) { const op = r.bytes(36); r.bytes(r.vi()); r.bytes(4);
+    let coinbase = false, cbScript = null;
+    for (let i = 0; i < nIn; i++) { const op = r.bytes(36); const sig = r.bytes(r.vi()); r.bytes(4);
+      if (i === 0) cbScript = sig;
       if (nIn === 1 && op.subarray(0, 32).every(x => x === 0) && op[32] === 0xff && op[33] === 0xff && op[34] === 0xff && op[35] === 0xff) coinbase = true; }
     const nOut = r.vi(); const outs = [];
     for (let i = 0; i < nOut; i++) { const value = r.u64(); const script = r.bytes(r.vi()); outs.push({ value, script }); }
@@ -192,7 +193,7 @@ const Core = (() => {
     const lock = r.bytes(4);
     if (!r.done) throw new Error("extra bytes after transaction");
     const stripped = concat(version, bytes.subarray(ioStart, ioEnd), lock);
-    return { txid: revHex(dsha(stripped)), wtxid: revHex(dsha(bytes.subarray(start))), segwit, nIn, outs, coinbase };
+    return { txid: revHex(dsha(stripped)), wtxid: revHex(dsha(bytes.subarray(start))), segwit, nIn, outs, coinbase, cbScript };
   }
 
   // ---- address encoding ----
@@ -301,7 +302,7 @@ const Core = (() => {
     return { state: "pass", text: `Linked by ${n.toLocaleString()} headers (each PoW-checked) to checkpoint ${cpH.toLocaleString()} of the fully verified chain → block height ${(cpH - n).toLocaleString()} is on the main chain`, height: cpH - n };
   }
 
-  function verify({ txid, txHex, mbHex, statusJson, tip, minConf = 3, address = "", amount = null, chainHex = "", checkpoints = null, reward = null }) {
+  function verify({ txid, txHex, mbHex, statusJson, tip, minConf = 3, address = "", amount = null, chainHex = "", checkpoints = null, reward = null, pools = null }) {
     const checks = []; const add = (state, text) => checks.push({ state, text });
     let chain = null;
     const want = String(txid || "").trim().toLowerCase();
@@ -361,7 +362,7 @@ const Core = (() => {
     }
 
     let rw = null;
-    if (hdr && (reward || checks.length)) { rw = rewardProof(reward, hdr, height); rw.checks.forEach(c => checks.push(c)); }
+    if (hdr && (reward || checks.length)) { rw = rewardProof(reward, hdr, height, pools); rw.checks.forEach(c => checks.push(c)); }
     const fails = checks.filter(c => c.state === "fail").map(c => c.text);
     const coreOk = fails.length === 0 && !!mres;
     let verdict, cls;
@@ -391,7 +392,17 @@ const Core = (() => {
   }
   // block reward: subsidy from the proven height (halving every 210,000), coinbase proven in the same block
   const subsidy = h => { const e = Math.floor(h / 210000); return e >= 64 ? 0n : 5000000000n >> BigInt(e); };
-  function rewardProof(rw, hdr, height) {
+  function matchPool(cb, pools) {
+    if (!cb || !pools) return null;
+    const tagAscii = cb.cbScript ? Array.from(cb.cbScript, b => (b >= 32 && b < 127) ? String.fromCharCode(b) : ".").join("") : "";
+    const outAddrs = cb.outs.map(o => scriptInfo(o.script).address).filter(Boolean);
+    for (const p of pools) {
+      for (const t of (p.tags || [])) if (t && tagAscii.includes(t)) return { name: p.name, by: "coinbase tag", evidence: t, link: p.link };
+      for (const a of (p.addresses || [])) if (outAddrs.includes(a)) return { name: p.name, by: "payout address", evidence: a, link: p.link };
+    }
+    return { name: null, tag: tagAscii.replace(/^[^ -~]+/, "").slice(0, 40) };
+  }
+  function rewardProof(rw, hdr, height, pools) {
     const out = { checks: [] }; const add = (state, text) => out.checks.push({ state, text });
     if (!rw || !rw.coinbase_hex) { add("skip", "No coinbase data — block reward not checked"); return out; }
     let cb; try { cb = parseTx(hexToBytes(rw.coinbase_hex)); } catch (e) { add("fail", "Coinbase tx unreadable: " + e.message); return out; }
@@ -404,6 +415,9 @@ const Core = (() => {
     } catch (e) { add("fail", "Coinbase merkle proof invalid: " + e.message); }
     const paid = cb.outs.reduce((a, o) => a + o.value, 0n);
     out.coinbaseTxid = cb.txid; out.paid = paid;
+    const pm = matchPool(cb, pools); out.pool = pm;
+    if (pm && pm.name) add("pass", `Mined by ${pm.name} — identified by ${pm.by} (${pm.evidence.length > 24 ? pm.evidence.slice(0, 24) + "…" : pm.evidence})`);
+    else add("info", `Mining pool not identified${pm && pm.tag ? ` · coinbase tag "${pm.tag}"` : ""}`);
     if (height != null) {
       const sub = subsidy(height); out.subsidy = sub; out.era = Math.floor(height / 210000); out.nextHalving = (out.era + 1) * 210000;
       add("pass", `Subsidy at height ${height.toLocaleString()} = ${fmt(sub)} BTC (halving era ${out.era}; computed: 50 BTC >> ${out.era})`);
@@ -420,7 +434,7 @@ const Core = (() => {
     return { headers: j.headers, tipHeight: j.tip_height, tipHash: j.tip_hash, verifiedAt: j.verified_at,
              byHash: new Map(j.checkpoints.map(c => [c.hash, c.height])) };
   }
-  return { verify, classify, parseBundle, loadCheckpoints, rewardProof, subsidy, fmt, sha256, toHex, hexToBytes, headerInfo, revHex, dsha, parseMerkleBlock, concat };
+  return { verify, classify, parseBundle, loadCheckpoints, rewardProof, matchPool, subsidy, fmt, sha256, toHex, hexToBytes, headerInfo, revHex, dsha, parseMerkleBlock, concat };
 })();
 /* =================== end core =================== */
 
@@ -439,7 +453,7 @@ if (typeof document !== "undefined") {
   }
   $("txid").addEventListener("input", () => { renderLinks(); chainHex = ""; rewardData = null; });
 
-  let bundle = null, chainHex = "", CPS = null, rewardData = null;
+  let bundle = null, chainHex = "", CPS = null, rewardData = null, POOLS = null;
   function loadEntry(i) {
     const e = bundle.entries[i];
     $("txid").value = e.txid; renderLinks();
@@ -484,14 +498,18 @@ if (typeof document !== "undefined") {
     } catch {}
   })();
 
+  // pool dataset (offline-bundled)
+  (async () => { try { POOLS = await (await fetch("pools.json", { cache: "no-store" })).json(); } catch {} })();
+
   // POC ledger: re-verify every bundled tx here and list hashes, times, addresses, reward
   let ledgerCsv = "";
-  function buildLedger(entries) {
+  async function buildLedger(entries) {
+    if (!POOLS) { try { POOLS = await (await fetch("pools.json", { cache: "no-store" })).json(); } catch {} }
     const checkedAt = new Date().toISOString();
     const rows = [], csv = [["label","txid","verdict","block_height","block_hash","block_time_utc","outputs","tx_fee_btc","subsidy_btc","block_fees_btc","coinbase_paid_btc","coinbase_txid","checked_at_utc"]];
     for (const e of entries) {
       if (e.error) continue;
-      const r = Core.verify({ txid: e.txid, txHex: e.tx_hex, mbHex: e.merkleblock_hex, statusJson: JSON.stringify(e.status), tip: e.tip_height, minConf: 1, chainHex: e.chain_headers_hex || "", checkpoints: CPS, reward: e.reward || null });
+      const r = Core.verify({ txid: e.txid, txHex: e.tx_hex, mbHex: e.merkleblock_hex, statusJson: JSON.stringify(e.status), tip: e.tip_height, minConf: 1, chainHex: e.chain_headers_hex || "", checkpoints: CPS, reward: e.reward || null, pools: POOLS });
       const rw = r.reward || {}; const bt = r.header ? new Date(r.header.time * 1000).toISOString().replace("T", " ").slice(0, 19) : "-";
       const outs = (r.outputs || []).map(o => `${o.address || o.type} ${Core.fmt(o.sats)}`);
       const ok = r.verdict === "VERIFIED";
@@ -500,9 +518,9 @@ if (typeof document !== "undefined") {
         <div class="mono" style="margin-top:4px">tx&nbsp;&nbsp;&nbsp;${e.txid}</div>
         ${r.header ? `<div class="mono">blk&nbsp;&nbsp;${r.header.hash}</div><div class="step">height ${r.height != null ? r.height.toLocaleString() : "?"} · mined ${bt} UTC · checked ${checkedAt.slice(11, 19)} UTC</div>` : ""}
         <div class="mono" style="margin-top:4px">${outs.map(esc).join("<br>")}</div>
-        ${rw.subsidy != null ? `<div class="step" style="margin-top:4px">reward: subsidy ${Core.fmt(rw.subsidy)} + fees ${rw.fees != null ? Core.fmt(rw.fees) : "?"} → coinbase paid ${Core.fmt(rw.paid)} BTC${rw.txFee != null ? ` · this tx fee ${Core.fmt(rw.txFee)}` : ""}</div>` : ""}
+        ${rw.subsidy != null ? `<div class="step" style="margin-top:4px">reward: subsidy ${Core.fmt(rw.subsidy)} + fees ${rw.fees != null ? Core.fmt(rw.fees) : "?"} → coinbase paid ${Core.fmt(rw.paid)} BTC${rw.txFee != null ? ` · this tx fee ${Core.fmt(rw.txFee)}` : ""}${rw.pool && rw.pool.name ? ` · mined by <b>${esc(rw.pool.name)}</b>` : ""}</div>` : ""}
       </div>`);
-      csv.push([e.label || "", e.txid, r.verdict, r.height ?? "", r.header ? r.header.hash : "", bt, outs.join(" | "), rw.txFee != null ? Core.fmt(rw.txFee) : "", rw.subsidy != null ? Core.fmt(rw.subsidy) : "", rw.fees != null ? Core.fmt(rw.fees) : "", rw.paid != null ? Core.fmt(rw.paid) : "", rw.coinbaseTxid || "", checkedAt]);
+      csv.push([e.label || "", e.txid, r.verdict, r.height ?? "", r.header ? r.header.hash : "", bt, (rw.pool && rw.pool.name) || "", outs.join(" | "), rw.txFee != null ? Core.fmt(rw.txFee) : "", rw.subsidy != null ? Core.fmt(rw.subsidy) : "", rw.fees != null ? Core.fmt(rw.fees) : "", rw.paid != null ? Core.fmt(rw.paid) : "", rw.coinbaseTxid || "", checkedAt]);
     }
     $("ledger").innerHTML = `<div class="step">${rows.length} transactions re-verified at ${checkedAt.replace("T", " ").slice(0, 19)} UTC (min 1 confirmation; tampered entries should fail)</div>` + rows.join("");
     ledgerCsv = csv.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -553,13 +571,14 @@ if (typeof document !== "undefined") {
   }
   function flash(id) { const el = $(id); el.style.borderColor = "var(--ok)"; setTimeout(() => el.style.borderColor = "", 900); }
 
-  $("f").addEventListener("submit", e => {
+  $("f").addEventListener("submit", async e => {
     e.preventDefault();
+    if (!POOLS) { try { POOLS = await (await fetch("pools.json", { cache: "no-store" })).json(); } catch {} }
     const rep = Core.verify({
       txid: $("txid").value, txHex: $("txhex").value, mbHex: $("mb").value, statusJson: $("st").value,
       tip: $("tip").value, minConf: Math.max(0, parseInt($("minc").value, 10) || 0),
       address: $("addr").value.trim(), amount: $("amt").value.trim() || null,
-      chainHex, checkpoints: CPS, reward: rewardData,
+      chainHex, checkpoints: CPS, reward: rewardData, pools: POOLS,
     });
     const icon = { pass: "✓", fail: "✗", skip: "–", info: "i" };
     let h = `<div class="verdict v-${rep.cls}">${esc(rep.verdict)}${rep.problems.length ? "<ul>" + rep.problems.map(p => `<li>${esc(p)}</li>`).join("") + "</ul>" : ""}</div>`;
@@ -577,6 +596,7 @@ if (typeof document !== "undefined") {
         ${r.fees != null ? `<tr><td>+ Block fees (explorer)</td><td class="v mono">${Core.fmt(r.fees)}</td></tr><tr><td>= Max allowed reward</td><td class="v mono">${Core.fmt(r.subsidy + r.fees)}</td></tr>` : ""}
         <tr><td>Coinbase actually paid</td><td class="v mono">${Core.fmt(r.paid)}</td></tr>
         ${r.txFee != null ? `<tr><td>This tx's fee</td><td class="v mono">${Core.fmt(r.txFee)}</td></tr>` : ""}
+        <tr><td>Mined by</td><td class="v mono">${r.pool && r.pool.name ? esc(r.pool.name) : "unidentified"}</td></tr>
         <tr><td>Coinbase txid</td><td class="v mono">${r.coinbaseTxid.slice(0, 20)}…</td></tr></table></div>`;
     }
     if (rep.outputs) {
