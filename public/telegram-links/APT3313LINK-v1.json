@@ -1,0 +1,25 @@
+{
+  "schema": "paradox-one-telegram-link-v1",
+  "created_utc": "2026-11-20",
+  "source": "user-supplied",
+  "endpoint": {
+    "platform": "telegram",
+    "username": "APT3313LINK",
+    "url": "https://t.me/APT3313LINK"
+  },
+  "relationship": {
+    "source": "PARADOX_ONE",
+    "target": "telegram:APT3313LINK",
+    "type": "user_supplied_candidate_endpoint",
+    "status": "ASSOCIATED",
+    "ownership": "UNVERIFIED",
+    "authenticated_session": false,
+    "live_messages_sent": 0
+  },
+  "guardian": {
+    "default_deny": true,
+    "testnet_blocked": true,
+    "no_secret_collection": true
+  },
+  "next_gate": "Owner-authorized proof of control and independent live endpoint verification."
+}
