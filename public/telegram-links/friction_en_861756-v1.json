@@ -1,0 +1,25 @@
+{
+  "schema": "paradox-one-telegram-link-v1",
+  "created_utc": "2026-11-20",
+  "source": "user-supplied",
+  "endpoint": {
+    "platform": "telegram",
+    "username": "friction_en_861756",
+    "url": "https://t.me/friction_en_861756"
+  },
+  "relationship": {
+    "source": "PARADOX_ONE",
+    "target": "telegram:friction_en_861756",
+    "type": "user_supplied_candidate_endpoint",
+    "status": "ASSOCIATED",
+    "ownership": "UNVERIFIED",
+    "authenticated_session": false,
+    "live_messages_sent": 0
+  },
+  "guardian": {
+    "default_deny": true,
+    "testnet_blocked": true,
+    "no_secret_collection": true
+  },
+  "next_gate": "Verify public endpoint and obtain owner-authorized Telegram proof of control before enabling messaging."
+}
