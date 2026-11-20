@@ -1,0 +1,59 @@
+{
+  "schema": "paradox-lucky7-universe-bridge-v1",
+  "guardian": {
+    "default_deny": true,
+    "testnet": "BLOCKED",
+    "signing": "DENY",
+    "broadcast": "DENY",
+    "messaging": "DENY"
+  },
+  "nodes": [
+    {
+      "id": "paradox-one",
+      "kind": "system",
+      "status": "ASSOCIATED"
+    },
+    {
+      "id": "lucky7ai",
+      "kind": "repository",
+      "status": "ASSOCIATED",
+      "url": "https://github.com/ryanmorrison20261-netizen/Lucky7ai",
+      "blob_sha1": "8f077cd5f15e51438b97a8b35666951a85d1282c"
+    },
+    {
+      "id": "telegram:AAVE1306NEAR",
+      "kind": "telegram",
+      "status": "UNVERIFIED",
+      "url": "https://t.me/AAVE1306NEAR",
+      "blob_sha1": "e96dad25946b497b37f011276998e2cfdb383b20"
+    },
+    {
+      "id": "telegram:friction_en_861756",
+      "kind": "telegram",
+      "status": "UNVERIFIED",
+      "url": "https://t.me/friction_en_861756",
+      "blob_sha1": "940719ab2501928d531ec8beaecb1b6a51590111"
+    }
+  ],
+  "edges": [
+    {
+      "from": "paradox-one",
+      "to": "lucky7ai",
+      "relation": "project_registry_reference",
+      "status": "ASSOCIATED"
+    },
+    {
+      "from": "paradox-one",
+      "to": "telegram:AAVE1306NEAR",
+      "relation": "user_supplied_candidate",
+      "status": "UNVERIFIED"
+    },
+    {
+      "from": "paradox-one",
+      "to": "telegram:friction_en_861756",
+      "relation": "user_supplied_candidate",
+      "status": "UNVERIFIED"
+    }
+  ],
+  "proof_note": "GitHub files fetched via connected account; Telegram account control, live messages, and AI runtime not verified."
+}
