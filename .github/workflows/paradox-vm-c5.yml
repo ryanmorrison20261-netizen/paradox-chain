@@ -1,0 +1,21 @@
+name: Paradox VM C5 Meta Anchors
+on:
+  push:
+    paths:
+      - "paradox-vm/c5/**"
+      - ".github/workflows/paradox-vm-c5.yml"
+  pull_request:
+    paths:
+      - "paradox-vm/c5/**"
+      - ".github/workflows/paradox-vm-c5.yml"
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v
+        working-directory: paradox-vm/c5

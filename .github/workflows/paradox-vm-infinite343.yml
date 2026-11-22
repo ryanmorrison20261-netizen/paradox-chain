@@ -1,0 +1,24 @@
+name: Paradox Infinite 343
+on:
+  push:
+    branches: [main, feat/der-multiauth-cdp-adapter]
+    paths: ["paradox-vm/infinite343/**", ".github/workflows/paradox-vm-infinite343.yml"]
+  pull_request:
+    paths: ["paradox-vm/infinite343/**", ".github/workflows/paradox-vm-infinite343.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  infinite343:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run mathematical invariant tests
+        working-directory: paradox-vm/infinite343
+        run: python -m unittest -v
+      - name: Verify 9 by 343 count
+        working-directory: paradox-vm/infinite343
+        run: python -c "from lattice import Infinite343; v=Infinite343(); assert sum(sum(1 for _ in v.expand(c)) for c in v.cell_grid()) == 3087"

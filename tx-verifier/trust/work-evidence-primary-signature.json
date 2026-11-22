@@ -1,0 +1,38 @@
+{
+  "artifact": "MetaParadox DER Multi-Auth + Coinbase read-only adapters + five-party certificate verifier",
+  "evidence_sha256": "a7d7ec231da475f260849b13c91c932d8a14579ea7a01241e17e009c01a3abc2",
+  "protocol": "PARADOX-MULTIAUTH-5OF5-v1",
+  "challenge": {
+    "nonce": "XmcjDtOLwhOLckgoIBe2YyrcwJG1K8IU",
+    "timestamp": 1795319598,
+    "timestamp_utc": "2026-11-22T03:53:18Z",
+    "signing_message_sha256": "f4ecdb1b6a7b89e21db55554f9cb45128a3684a55a5d449fafb3fd08d9a08a43",
+    "signing_message_hex": "50415241444f582d4d554c5449415554482d4345525449464943415445007b2265766964656e63655f736861323536223a2261376437656332333164613437356632363038343962313363393163393332643861313435373965613761303132343165313765303039633031613361626332222c226e6f6e6365223a22586d636a44744f4c77684f4c636b676f4942653259797263774a47314b384955222c2270726f746f636f6c5f76657273696f6e223a2250415241444f582d4d554c5449415554482d354f46352d7631222c2274696d657374616d70223a313739353331393539387d"
+  },
+  "signer": {
+    "role": "primary",
+    "public_key_fingerprint_sha256": "f1c3845a538c953bea0534a7de90acebfc03212cc6f3e7a350deb70ebbbb14d7",
+    "curve": "secp256k1",
+    "signature_algorithm": "ECDSA-SHA256",
+    "signature_format": "ASN.1 DER",
+    "signature_hex": "3045022052e413a2d8b4abe4e4a0f6c30429ee203204668ff225429ada522ca1ea5e15af022100da5b5780cddeabeb4a2a8b9e8711e32cab88bd1a4b26970c20ee30561f001b52"
+  },
+  "verification": {
+    "result": "PASS",
+    "method": "Independent verification with Python cryptography ec.ECDSA(hashes.SHA256()) against the exact challenge bytes and registered PEM public key",
+    "signature_length_bytes": 71,
+    "verified_at_utc": "2026-11-22T03:53:56Z",
+    "challenge_age_seconds_at_verification": 38,
+    "maximum_allowed_skew_seconds": 300,
+    "public_key_fingerprint_match": true
+  },
+  "scope": {
+    "primary_signature_over_evidence": "PASS",
+    "primary_identity_binding": "PENDING",
+    "other_four_signers": "PENDING",
+    "five_of_five_certificate_issued": false,
+    "pr_merged": false,
+    "live_coinbase_api_tested": false,
+    "live_financial_operations_enabled": false
+  }
+}

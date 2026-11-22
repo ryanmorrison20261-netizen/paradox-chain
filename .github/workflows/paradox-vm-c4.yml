@@ -1,0 +1,21 @@
+name: Paradox VM C4 4D Mesh
+on:
+  push:
+    branches: [main, feat/der-multiauth-cdp-adapter]
+    paths: ["paradox-vm/c4/**", ".github/workflows/paradox-vm-c4.yml"]
+  pull_request:
+    paths: ["paradox-vm/c4/**", ".github/workflows/paradox-vm-c4.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mesh4d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run 4D mesh tests
+        working-directory: paradox-vm/c4
+        run: python -m unittest -v

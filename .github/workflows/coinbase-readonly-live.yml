@@ -1,0 +1,68 @@
+name: Coinbase read-only live verification
+
+on:
+  push:
+    branches:
+      - "feat/der-multiauth-cdp-adapter"
+    paths:
+      - "tx-verifier/tools/**"
+      - "tx-verifier/tests/**"
+      - ".github/workflows/coinbase-readonly-live.yml"
+  workflow_dispatch:
+    inputs:
+      run_live:
+        description: "Run live read-only Coinbase checks (requires configured GitHub secrets and variables)"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  mocked-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install cryptography
+      - name: Run complete mocked verifier and adapter suite
+        working-directory: tx-verifier
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+
+  live-readonly:
+    if: >-
+      \${{
+        (github.event_name == 'workflow_dispatch' && inputs.run_live) ||
+        (github.event_name == 'push' &&
+         vars.PARADOX_CDP_EVM_ADDRESS != '' &&
+         vars.PARADOX_CDP_EVM_NETWORK != '')
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - name: Install official Coinbase SDKs
+        run: python -m pip install cdp-sdk coinbase-advanced-py
+      - name: Execute read-only live checks
+        working-directory: tx-verifier/tools
+        env:
+          PARADOX_CDP_WALLET_READ_ONLY: "true"
+          PARADOX_ADVANCED_TRADE_READ_ONLY: "true"
+          CDP_API_KEY_ID: \${{ secrets.CDP_API_KEY_ID }}
+          CDP_API_KEY_SECRET: \${{ secrets.CDP_API_KEY_SECRET }}
+          COINBASE_ADVANCED_API_KEY: \${{ secrets.COINBASE_ADVANCED_API_KEY }}
+          COINBASE_ADVANCED_API_SECRET: \${{ secrets.COINBASE_ADVANCED_API_SECRET }}
+          PARADOX_CDP_EVM_ADDRESS: \${{ vars.PARADOX_CDP_EVM_ADDRESS }}
+          PARADOX_CDP_EVM_NETWORK: \${{ vars.PARADOX_CDP_EVM_NETWORK }}
+          PARADOX_COINBASE_PRODUCT_ID: \${{ vars.PARADOX_COINBASE_PRODUCT_ID }}
+          DISABLE_CDP_ERROR_REPORTING: "true"
+          DISABLE_CDP_USAGE_TRACKING: "true"
+        run: python live_coinbase_readonly_check.py
