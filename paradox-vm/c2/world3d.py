@@ -93,7 +93,9 @@ class World3D:
                 raise ValueError("collision with obstacle: "+obstacle.name)
         event={"sequence":len(self.events)+1,"time_start_s":str(self.time_s),
                "dt_s":str(dt),"start_m":[str(x) for x in start],
-               "end_m":[str(x) for x in end],"velocity_start_mps":[str(x) for x in self.velocity],\n               "acceleration_mps2":[str(x) for x in self.acceleration],\n               "velocity_end_mps":[str(x) for x in new_v]}
+               "end_m":[str(x) for x in end],"velocity_start_mps":[str(x) for x in self.velocity],
+               "acceleration_mps2":[str(x) for x in self.acceleration],
+               "velocity_end_mps":[str(x) for x in new_v]}
         self.position=end; self.velocity=new_v; self.time_s+=dt
         self.events.append(event)
         return event
@@ -123,7 +125,8 @@ def save_state(path, world):
     envelope={"state":payload,"sha256":sha256(canonical).hexdigest()}
     target=Path(path); target.parent.mkdir(parents=True,exist_ok=True)
     temp=target.with_suffix(target.suffix+".tmp")
-    temp.write_text(json.dumps(envelope,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+    temp.write_text(json.dumps(envelope,sort_keys=True,indent=2)+"
+",encoding="utf-8")
     temp.replace(target)
     return envelope["sha256"]
 
