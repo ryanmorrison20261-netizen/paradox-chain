@@ -15,7 +15,9 @@ class TestC1Movement(unittest.TestCase):
         vm = C1Movement()
         first = vm.move("backward", "5")
         second = vm.move("forward", "50")
-        self.assertEqual(first["end_m"] if isinstance(first, dict) else first.end_m, " -5")
+        self.assertEqual(first.end_m, "-5")
+        self.assertEqual(second.start_m, first.end_m)
+        self.assertEqual(second.end_m, "45")
 
     def test_decimal_precision_without_binary_float_drift(self):
         vm = C1Movement()
