@@ -1,7 +1,7 @@
 """Coinbase Advanced Trade read-only adapter.
 
 Uses Coinbase's official coinbase-advanced-py RESTClient. This wrapper deliberately
-exposes only read operations. Supply a VIEW-only CDP API key; never commit credentials.
+exposes only read operations. Supply a dedicated VIEW-only CDP API key.
 """
 from __future__ import annotations
 import os
@@ -42,3 +42,9 @@ class AdvancedTradeReadOnly:
         if not product_ids or any(not p for p in product_ids):
             raise ValueError("non-empty product_ids required")
         return self._client.get_best_bid_ask(product_ids=product_ids)
+
+    def get_public_product_book(self, product_id: str) -> Any:
+        """Read the unauthenticated public order book for endpoint parity checks."""
+        if not product_id:
+            raise ValueError("product_id is required")
+        return self._client.get_public_product_book(product_id=product_id, limit=1)
