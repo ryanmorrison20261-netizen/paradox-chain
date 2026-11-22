@@ -54,14 +54,16 @@ A successful certificate includes the protocol version, canonical evidence diges
 
 A generated unit-test certificate is test-only evidence. It is not an approval by o², Guardian, or any real-world auditor. The production certificate remains **PENDING** until all five real participants sign the same evidence digest and their signatures are verified.
 
-## Primary signer key registration (2026-11-21)
+## Primary signer proof-of-possession update (2026-11-21)
 
-A user-supplied Primary public key has been added at `trust/primary-public-key.json`.
+The supplied DER signature was independently verified against the registered public key and the exact challenge message using ECDSA/secp256k1 with SHA-256.
 
-- Curve and key parsing: **PASS** (OpenSSL identified a 256-bit secp256k1 public key).
-- Public-key fingerprint (SHA-256 over DER SubjectPublicKeyInfo): `f1c3845a538c953bea0534a7de90acebfc03212cc6f3e7a350deb70ebbbb14d7`.
-- Proof of private-key possession: **PENDING**.
-- Independent binding of this key to the Primary signer identity/role: **PENDING**.
-- Trusted for 5-of-5 authorization: **NO** until both pending checks are satisfied.
+- Public-key fingerprint: `f1c3845a538c953bea0534a7de90acebfc03212cc6f3e7a350deb70ebbbb14d7`
+- Challenge nonce: `Foj1NI2a29R7fY-M8ziVu85ga9yCiSWv`
+- Challenge timestamp: `1795319431` (2026-11-22T03:50:31Z)
+- Verification time: `2026-11-21T20:51:14-07:00`
+- Proof of private-key possession: **PASS**
+- Independent binding of this key to the Primary signer identity/role: **PENDING**
+- Trusted for 5-of-5 authorization: **NO** until identity/role binding is independently established.
 
-The PEM is public material. No private key was received or stored. Do not treat successful PEM parsing as proof that the submitter controls the corresponding private key.
+The signature and challenge transcript are recorded in `trust/primary-public-key.json`. This proves control of the key for the challenge; it does not by itself prove the real-world identity or authority of the signer.
