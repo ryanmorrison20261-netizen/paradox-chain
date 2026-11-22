@@ -10,7 +10,7 @@ class DERMultiAuthTests(unittest.TestCase):
         self.keys = {n: ec.generate_private_key(ec.SECP256K1()) for n in ("alice", "bob", "carol")}
         self.pubs = {n: k.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo) for n, k in self.keys.items()}
         self.now = 1700000000
-        self.envelope = RequestEnvelope("POST", "/v1/proof", self.now, "nonce-1", b'{"amount":1}')
+        self.envelope = RequestEnvelope("POST", "/v1/proof", self.now, "nonce-000000000001", b'{"amount":1}')
 
     def signatures(self, names, envelope=None):
         e = envelope or self.envelope
@@ -23,11 +23,12 @@ class DERMultiAuthTests(unittest.TestCase):
         self.assertFalse(verify_threshold(self.envelope, self.signatures(("alice",)), self.pubs, 2, NonceStore(), now=self.now)[0])
 
     def test_tampered_body(self):
-        altered = RequestEnvelope("POST", "/v1/proof", self.now, "nonce-2", b'{"amount":999}')
+        altered = RequestEnvelope("POST", "/v1/proof", self.now, "nonce-000000000002", b'{"amount":999}')
         self.assertFalse(verify_threshold(altered, self.signatures(("alice", "bob")), self.pubs, 2, NonceStore(), now=self.now)[0])
 
     def test_untrusted_signer(self):
-        self.assertFalse(verify_threshold(self.envelope, {"intruder": b"bad"}, self.pubs, 1, NonceStore(), now=self.now)[0])
+        with self.assertRaises(AuthError):
+            verify_threshold(self.envelope, {"intruder": b"bad"}, self.pubs, 1, NonceStore(), now=self.now)
 
     def test_replay_rejected(self):
         store = NonceStore()
@@ -50,11 +51,14 @@ class DERMultiAuthTests(unittest.TestCase):
             load_secp256k1_public_key(pem)
 
     def test_duplicate_signature_not_double_counted(self):
-        sigs = {"alice": self.signatures(("alice",))["alice"], "alice-copy": self.signatures(("alice",))["alice"]}
-        self.assertFalse(verify_threshold(self.envelope, sigs, self.pubs, 2, NonceStore(), now=self.now)[0])
+        duplicate_pubs = dict(self.pubs)
+        duplicate_pubs["alice-copy"] = self.pubs["alice"]
+        sigs = {"alice": self.signatures(("alice",))["alice"]}
+        with self.assertRaises(AuthError):
+            verify_threshold(self.envelope, sigs, duplicate_pubs, 2, NonceStore(), now=self.now)
 
     def test_signature_for_other_request_rejected(self):
-        other = RequestEnvelope("GET", "/v1/other", self.now, "nonce-3", b"")
+        other = RequestEnvelope("GET", "/v1/other", self.now, "nonce-000000000003", b"")
         self.assertFalse(verify_threshold(other, self.signatures(("alice", "bob")), self.pubs, 2, NonceStore(), now=self.now)[0])
 
     def test_failed_threshold_does_not_consume_nonce(self):
