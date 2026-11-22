@@ -56,7 +56,7 @@ class ReplayCache:
         with self._lock:
             while self._items and next(iter(self._items.values())) <= current: self._items.popitem(last=False)
             if token in self._items: return False
-            while len(self._items) >= self.max_entries: self._items.popitem(last=False)
+            if len(self._items) >= self.max_entries: return False
             self._items[token] = current + self.ttl
             return True
 
@@ -137,6 +137,8 @@ class MeshConnectionManager:
     def _check_context(ctx, *, server):
         if not isinstance(ctx, ssl.SSLContext): raise TypeError("operator-configured SSLContext required")
         if ctx.minimum_version < ssl.TLSVersion.TLSv1_3: raise ValueError("TLS 1.3 minimum required")
+        if ctx.maximum_version != ssl.TLSVersion.MAXIMUM_SUPPORTED and ctx.maximum_version < ssl.TLSVersion.TLSv1_3:
+            raise ValueError("TLS maximum version must permit TLS 1.3")
         if ctx.verify_mode != ssl.CERT_REQUIRED: raise ValueError("CERT_REQUIRED mutual TLS is required")
         if not server and not ctx.check_hostname: raise ValueError("client hostname verification required")
 
