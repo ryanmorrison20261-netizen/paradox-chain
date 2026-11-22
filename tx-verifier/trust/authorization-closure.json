@@ -1,0 +1,87 @@
+{
+  "schema": "PARADOX-AUTHORIZATION-CLOSURE-v1",
+  "protocol": "PARADOX-MULTIAUTH-5OF5-v1",
+  "evidence_sha256": "a7d7ec231da475f260849b13c91c932d8a14579ea7a01241e17e009c01a3abc2",
+  "status": "BLOCKED_ON_EXTERNAL_AUTHORIZATION_EVIDENCE",
+  "policy": {
+    "no_identity_inference_from_key_possession": true,
+    "no_synthetic_or_test_signer_approvals": true,
+    "no_private_keys_in_repository_or_chat": true,
+    "no_live_financial_operations_without_separate_explicit_authorization": true
+  },
+  "signers": {
+    "primary": {
+      "key_fingerprint_sha256": "f1c3845a538c953bea0534a7de90acebfc03212cc6f3e7a350deb70ebbbb14d7",
+      "proof_of_possession": "PASS",
+      "identity_role_binding": "PENDING",
+      "required_identity_evidence": [
+        "An independently verifiable identity or organizational authority record for the named Primary role",
+        "A signed role-binding statement that includes this exact public-key fingerprint",
+        "Verification by an independent authorized reviewer, recorded with source and timestamp"
+      ],
+      "certificate_authorization": "NOT_YET_TRUSTED"
+    },
+    "o2": {
+      "key_registration": "PENDING",
+      "identity_role_binding": "PENDING",
+      "signature_over_evidence": "PENDING"
+    },
+    "guardian": {
+      "key_registration": "PENDING",
+      "identity_role_binding": "PENDING",
+      "signature_over_evidence": "PENDING"
+    },
+    "chain_auditor": {
+      "key_registration": "PENDING",
+      "identity_role_binding": "PENDING",
+      "signature_over_evidence": "PENDING"
+    },
+    "adversarial_auditor": {
+      "key_registration": "PENDING",
+      "identity_role_binding": "PENDING",
+      "signature_over_evidence": "PENDING"
+    }
+  },
+  "closure_gates": [
+    {
+      "gate": "G1_PRIMARY_IDENTITY_BINDING",
+      "status": "BLOCKED",
+      "owner": "Primary plus independent identity reviewer",
+      "exit_criteria": "Verify an out-of-band identity/authority record and signed binding to the registered fingerprint; never infer identity from proof of possession alone."
+    },
+    {
+      "gate": "G2_FOUR_ADDITIONAL_SIGNERS",
+      "status": "BLOCKED",
+      "owner": "o2, Guardian, chain auditor, adversarial auditor",
+      "exit_criteria": "Register four distinct secp256k1 public keys, independently bind each key to its role, and obtain each role's DER signature over the same fresh evidence envelope."
+    },
+    {
+      "gate": "G3_CERTIFICATE_VERIFICATION",
+      "status": "BLOCKED",
+      "owner": "Certificate verifier / independent auditor",
+      "exit_criteria": "Run production verifier with all five independently trusted public keys and real signatures; persist certificate and verifier output; independently re-verify certificate and replay protection."
+    },
+    {
+      "gate": "G4_OPERATIONAL_AUTHORIZATION",
+      "status": "BLOCKED",
+      "owner": "System owner",
+      "exit_criteria": "Keep Coinbase read-only or disabled. Any write/trading/transfer/withdrawal capability requires a separate explicit authorization, scoped credentials, risk limits, and end-to-end sandbox and live controls review."
+    }
+  ],
+  "certificate": {
+    "issued": false,
+    "threshold": "5-of-5",
+    "required_signers": [
+      "primary",
+      "o2",
+      "guardian",
+      "chain_auditor",
+      "adversarial_auditor"
+    ]
+  },
+  "coinbase": {
+    "live_api_tested": false,
+    "live_financial_operations_enabled": false,
+    "status": "READ_ONLY_OR_DISABLED"
+  }
+}
