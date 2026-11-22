@@ -1,7 +1,9 @@
 import unittest
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tools'))
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
-from tx_verifier.tools.der_multiauth import AuthError, NonceStore, RequestEnvelope, load_secp256k1_public_key, verify_der_signature, verify_threshold
+from der_multiauth import AuthError, NonceStore, RequestEnvelope, load_secp256k1_public_key, verify_der_signature, verify_threshold
 
 class DERMultiAuthTests(unittest.TestCase):
     def setUp(self):
