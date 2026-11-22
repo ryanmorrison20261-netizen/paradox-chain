@@ -52,6 +52,7 @@ class FivePartyCertificateTests(unittest.TestCase):
         self.assertEqual(cert["threshold"], "5-of-5")
         self.assertEqual(len(cert["signers"]), 5)
         self.assertTrue(all(s["valid"] for s in cert["signers"]))
+        self.assertTrue(all(s["signature_der_hex"] and len(s["signature_sha256"]) == 64 for s in cert["signers"]))
         self.assertEqual(cert["evidence_sha256"], evidence_digest(self.evidence))
 
     def test_canonicalization_ignores_object_key_order(self):
