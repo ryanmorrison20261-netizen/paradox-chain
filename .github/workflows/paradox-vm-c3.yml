@@ -1,0 +1,24 @@
+name: Paradox VM C3 Infinite 343 Lattice
+on:
+  push:
+    paths:
+      - "paradox-vm/c3/**"
+      - ".github/workflows/paradox-vm-c3.yml"
+  pull_request:
+    paths:
+      - "paradox-vm/c3/**"
+      - ".github/workflows/paradox-vm-c3.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run C3 lattice tests
+        working-directory: paradox-vm/c3
+        run: python -m unittest -v
