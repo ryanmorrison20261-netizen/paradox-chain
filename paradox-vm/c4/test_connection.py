@@ -49,8 +49,10 @@ class ReplayTests(unittest.TestCase):
         c=ReplayCache(ttl=10); self.assertTrue(c.accept_once("n",now=1)); self.assertFalse(c.accept_once("n",now=2))
     def test_expiry(self):
         c=ReplayCache(ttl=5); self.assertTrue(c.accept_once("n",now=1)); self.assertTrue(c.accept_once("n",now=7))
-    def test_bounded(self):
-        c=ReplayCache(max_entries=2); c.accept_once("a"); c.accept_once("b"); c.accept_once("c"); self.assertLessEqual(len(c._items),2)
+    def test_full_cache_fails_closed(self):
+        c=ReplayCache(max_entries=2); self.assertTrue(c.accept_once("a")); self.assertTrue(c.accept_once("b"))
+        self.assertFalse(c.accept_once("c")); self.assertFalse(c.accept_once("a"))
+        self.assertEqual(len(c._items),2)
     def test_bad_limits(self):
         with self.assertRaises(ValueError): ReplayCache(ttl=0)
 
