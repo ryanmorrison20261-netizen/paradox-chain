@@ -7,8 +7,17 @@
 - Cross-space connectivity is possible only through explicit bridge links.
 - A bridge requires authorization, verification and a non-empty evidence reference.
 - One 7x7x7x7 hyperblock contains 2,401 addresses: seven w-layers of 343 xyz addresses.
-- The graph router uses deterministic breadth-first search.
+- The graph router uses deterministic breadth-first search and traverses only links
+  explicitly marked authorized and verified.
 - Mesh changes are recorded in a SHA-256 hash-linked audit sequence.
+
+## Network layer
+See CONNECTIONS.md for the opt-in TLS 1.3 mutual-authenticated peer transport.
+connection.py provides certificate-pinned sessions; fabric.py adds topology-wide
+neighbor connections and multi-hop forwarding over authorized 4D routes. The
+transport is disabled by default and requires operator-managed PKI, peer
+registries, listener setup, and shared replay storage for clustered deployments.
+
 
 ## Reproduce
 ```bash
