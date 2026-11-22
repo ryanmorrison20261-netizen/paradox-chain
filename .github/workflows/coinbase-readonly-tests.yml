@@ -1,0 +1,23 @@
+name: Coinbase read-only integration tests
+on:
+  pull_request:
+    paths:
+      - "tx-verifier/tools/**"
+      - "tx-verifier/tests/**"
+      - ".github/workflows/coinbase-readonly-tests.yml"
+  push:
+    branches:
+      - "feat/der-multiauth-cdp-adapter"
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install cryptography
+      - name: Run DER and Coinbase adapter tests
+        working-directory: tx-verifier
+        run: python -m unittest discover -s tests -p "test_*.py" -v
