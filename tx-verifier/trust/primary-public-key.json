@@ -1,0 +1,18 @@
+{
+  "schema": "PARADOX-TRUSTED-SIGNER-REGISTRY-v1",
+  "curve": "secp256k1",
+  "fingerprint_algorithm": "SHA-256 over DER SubjectPublicKeyInfo",
+  "signers": {
+    "primary": {
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEz1syFXd2ASFVRonWpUorWe95kOci1RDU\nHpccCvJve8kIE7NP0bG3p8bEz3sbZfhyB0MW8Q0j4f8Vnc5dCo6AHA==\n-----END PUBLIC KEY-----",
+      "fingerprint_sha256": "f1c3845a538c953bea0534a7de90acebfc03212cc6f3e7a350deb70ebbbb14d7",
+      "source": "user-supplied public key in ChatGPT conversation",
+      "key_format_validation": "PASS",
+      "curve_validation": "PASS",
+      "proof_of_possession": "PENDING",
+      "identity_binding": "PENDING",
+      "trusted_for_5of5": false
+    }
+  },
+  "policy": "A public key is not trusted for certificate authorization until proof of possession and independent identity/role binding are verified. Never store private keys."
+}
