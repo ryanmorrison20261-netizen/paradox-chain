@@ -28,8 +28,8 @@ class TestC2(unittest.TestCase):
         self.assertEqual(w.snapshot()["position_m"],["0","0","0"])
     def test_no_collision_outside_box(self):
         box=AABB.from_values("wall",("4","-1","-1"),("6","1","1"))
-        w=World3D(obstacles=(box,)); w.move(("10","2","0"))
-        self.assertEqual(w.snapshot()["position_m"],["10","2","0"])
+        w=World3D(obstacles=(box,)); w.move(("10","4","0"))
+        self.assertEqual(w.snapshot()["position_m"],["10","4","0"])
     def test_velocity_acceleration_time(self):
         w=World3D(); w.set_kinematics(("1","0","0"),("2","0","0")); w.step("2")
         self.assertEqual(w.snapshot()["position_m"],["6","0","0"])
