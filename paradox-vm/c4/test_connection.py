@@ -1,4 +1,5 @@
-import json, socket, struct, unittest
+import json, socket, struct, unittest, ssl, tempfile, subprocess, shutil, threading, queue
+from pathlib import Path
 from hashlib import sha256
 from connection import PROTOCOL, MeshConnectionManager, MeshSession, PeerIdentity, ReplayCache, send_frame, receive_frame
 
@@ -97,5 +98,56 @@ class ManagerTests(unittest.TestCase):
     def test_self_not_remote(self):
         local,*_=setup_ids()
         with self.assertRaises(ValueError): MeshConnectionManager(local,{local.node_id:local})
+    def test_registry_key_must_match_identity(self):
+        local,peer,*_=setup_ids()
+        with self.assertRaises(ValueError): MeshConnectionManager(local,{"alias":peer})
+
+class TLSLoopbackTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("openssl"), "openssl is required for local TLS fixture")
+    def test_mutual_tls_loopback_bidirectional_exchange(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            def run(*args): subprocess.run(["openssl",*args],check=True,capture_output=True)
+            run("req","-x509","-newkey","rsa:2048","-nodes","-keyout",str(root/"ca.key"),"-out",str(root/"ca.crt"),"-subj","/CN=Paradox-Test-CA","-days","2")
+            for name in ("node-a","node-b"):
+                run("req","-newkey","rsa:2048","-nodes","-keyout",str(root/f"{name}.key"),"-out",str(root/f"{name}.csr"),"-subj",f"/CN={name}")
+                (root/f"{name}.ext").write_text("subjectAltName=DNS:localhost,IP:127.0.0.1\\nextendedKeyUsage=serverAuth,clientAuth\\nkeyUsage=digitalSignature,keyEncipherment\\n")
+                run("x509","-req","-in",str(root/f"{name}.csr"),"-CA",str(root/"ca.crt"),"-CAkey",str(root/"ca.key"),"-CAcreateserial","-out",str(root/f"{name}.crt"),"-days","2","-sha256","-extfile",str(root/f"{name}.ext"))
+            def identity(name, address):
+                der=ssl.PEM_cert_to_DER_cert((root/f"{name}.crt").read_text())
+                return PeerIdentity(name,address,sha256(der).hexdigest())
+            a,b=identity("node-a","mesh:0,0,0,0"),identity("node-b","mesh:1,0,0,0")
+            client_ctx=ssl.create_default_context(ssl.Purpose.SERVER_AUTH,cafile=str(root/"ca.crt"))
+            client_ctx.minimum_version=ssl.TLSVersion.TLSv1_3
+            client_ctx.load_cert_chain(str(root/"node-a.crt"),str(root/"node-a.key"))
+            server_ctx=ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            server_ctx.minimum_version=ssl.TLSVersion.TLSv1_3
+            server_ctx.verify_mode=ssl.CERT_REQUIRED
+            server_ctx.load_cert_chain(str(root/"node-b.crt"),str(root/"node-b.key"))
+            server_ctx.load_verify_locations(cafile=str(root/"ca.crt"))
+            listener=socket.socket(); listener.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+            listener.bind(("127.0.0.1",0)); listener.listen(1); listener.settimeout(5)
+            result=queue.Queue()
+            def serve():
+                try:
+                    manager=MeshConnectionManager(b,{a.node_id:a},enabled=True,timeout=5)
+                    session=manager.accept_one(listener,server_ctx)
+                    result.put(session)
+                except Exception as exc: result.put(exc)
+            thread=threading.Thread(target=serve,daemon=True); thread.start()
+            client=None; server=None
+            try:
+                manager=MeshConnectionManager(a,{b.node_id:b},enabled=True,timeout=5)
+                client=manager.connect(b.node_id,"localhost",listener.getsockname()[1],client_ctx)
+                server=result.get(timeout=6)
+                if isinstance(server,Exception): raise server
+                client.send({"kind":"ping","dimension":4})
+                self.assertEqual(server.receive(),{"kind":"ping","dimension":4})
+                server.send({"kind":"pong","authenticated":True})
+                self.assertEqual(client.receive(),{"kind":"pong","authenticated":True})
+            finally:
+                if client: client.close()
+                if server and not isinstance(server,Exception): server.close()
+                listener.close(); thread.join(timeout=2)
 
 if __name__ == "__main__": unittest.main()
