@@ -32,7 +32,7 @@ class TestC2(unittest.TestCase):
         self.assertEqual(w.snapshot()["position_m"],["10","2","0"])
     def test_velocity_acceleration_time(self):
         w=World3D(); w.set_kinematics(("1","0","0"),("2","0","0")); w.step("2")
-        self.assertEqual(w.snapshot()["position_m"],["4","0","0"])
+        self.assertEqual(w.snapshot()["position_m"],["6","0","0"])
         self.assertEqual(w.snapshot()["velocity_mps"],["5","0","0"])
         self.assertEqual(w.snapshot()["time_s"],"2")
     def test_nonpositive_dt_rejected(self):
