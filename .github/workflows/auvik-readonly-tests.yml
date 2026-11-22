@@ -3,7 +3,9 @@ on:
   pull_request:
     paths:
       - "tx-verifier/tools/auvik_readonly.py"
+      - "tx-verifier/tools/auvik_readonly_smoke.py"
       - "tx-verifier/tests/test_auvik_readonly.py"
+      - "tx-verifier/tests/test_auvik_readonly_smoke.py"
       - "tx-verifier/AUVIK_READONLY.md"
       - ".github/workflows/auvik-readonly-tests.yml"
   push:
@@ -19,4 +21,4 @@ jobs:
           python-version: "3.12"
       - name: Run Auvik read-only tests
         working-directory: tx-verifier
-        run: python -m unittest tests.test_auvik_readonly -v
+        run: python -m unittest discover -s tests -p "test_auvik_readonly*.py" -v
