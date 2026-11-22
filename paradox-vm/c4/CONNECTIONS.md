@@ -35,6 +35,16 @@ The dialer calls connect(peer_id, host, port, client_ctx). The listener calls
 accept_one(listener_socket, server_ctx). Authenticated sessions expose
 send({"type": "health_ping"}), receive(), and close().
 
+For topology-wide routing, register every node as a MeshEndpoint and construct
+MeshFabric with the same approved ParadoxMesh4D topology and trust registry at
+each node. MeshFabric.connect_neighbors(client_ctx) dials all authorized direct
+neighbors. send_to(destination_node_id, payload) computes the verified 4D route
+and sends through its first hop. Each relay calls receive_from(incoming_peer_id);
+it validates every route edge and forwards to the next authenticated neighbor.
+The destination receives the original payload. Every hop uses its own mTLS
+session. The listener side must accept connections and attach each resulting
+session to its MeshFabric with attach_session().
+
 ## Production gates
 - Do not expose a listener without firewall policy, connection caps, rate limits, monitoring and DoS controls.
 - Certificate issuance, rotation, revocation and identity/address registry updates require an approved PKI process.
