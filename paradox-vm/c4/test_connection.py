@@ -111,7 +111,7 @@ class TLSLoopbackTests(unittest.TestCase):
             run("req","-x509","-newkey","rsa:2048","-nodes","-keyout",str(root/"ca.key"),"-out",str(root/"ca.crt"),"-subj","/CN=Paradox-Test-CA","-days","2")
             for name in ("node-a","node-b"):
                 run("req","-newkey","rsa:2048","-nodes","-keyout",str(root/f"{name}.key"),"-out",str(root/f"{name}.csr"),"-subj",f"/CN={name}")
-                (root/f"{name}.ext").write_text("subjectAltName=DNS:localhost,IP:127.0.0.1\\nextendedKeyUsage=serverAuth,clientAuth\\nkeyUsage=digitalSignature,keyEncipherment\\n")
+                (root/f"{name}.ext").write_text("subjectAltName=DNS:localhost,IP:127.0.0.1\nextendedKeyUsage=serverAuth,clientAuth\nkeyUsage=digitalSignature,keyEncipherment\n")
                 run("x509","-req","-in",str(root/f"{name}.csr"),"-CA",str(root/"ca.crt"),"-CAkey",str(root/"ca.key"),"-CAcreateserial","-out",str(root/f"{name}.crt"),"-days","2","-sha256","-extfile",str(root/f"{name}.ext"))
             def identity(name, address):
                 der=ssl.PEM_cert_to_DER_cert((root/f"{name}.crt").read_text())
