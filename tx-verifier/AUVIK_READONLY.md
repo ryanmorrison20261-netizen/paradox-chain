@@ -43,6 +43,15 @@ devices_v2 = api.list_devices_v2(tenant="TENANT_ID")
 Mocked unit tests cover disabled-by-default behavior, URL validation, authentication construction, tenant scoping, v1/v2 parameter differences, write-path rejection, error sanitization, pagination bounds and malformed responses. These tests do **not** prove live Auvik connectivity.
 
 ## Live validation gate
+
+An opt-in smoke-check runner is provided at `tools/auvik_readonly_smoke.py`. Run it from `tx-verifier` after setting the environment variables below. It verifies credentials, lists tenants, and optionally reads one tenant's devices when `AUVIK_TENANT_ID` is set. It prints only record counts and SHA-256 response digests; it does not print raw customer records. The runner refuses to execute unless the explicit read-only flag is enabled.
+
+```bash
+export PARADOX_AUVIK_READ_ONLY=true
+python tools/auvik_readonly_smoke.py
+```
+
+
 Live verification requires the account owner's Auvik service-account credentials and region, supplied only through a secure local secret manager/environment. First verify credentials, then read one tenant and a small page of device inventory. Record timestamp, HTTP status, response counts and a redacted digest—not credentials, raw customer inventory, IPs, serials or full API bodies. Independently compare selected device identifiers/status with the Auvik UI or another authorized source on both ends.
 
 ## Current status
