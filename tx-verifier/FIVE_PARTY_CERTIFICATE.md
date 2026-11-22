@@ -53,3 +53,15 @@ certificate = verify_five_party_certificate(
 A successful certificate includes the protocol version, canonical evidence digest, nonce, timestamp, verification time, 5-of-5 status, and for each signer: identity label, SHA-256 public-key fingerprint, DER signature hex, signature SHA-256, format, and verification result.
 
 A generated unit-test certificate is test-only evidence. It is not an approval by o², Guardian, or any real-world auditor. The production certificate remains **PENDING** until all five real participants sign the same evidence digest and their signatures are verified.
+
+## Primary signer key registration (2026-11-21)
+
+A user-supplied Primary public key has been added at `trust/primary-public-key.json`.
+
+- Curve and key parsing: **PASS** (OpenSSL identified a 256-bit secp256k1 public key).
+- Public-key fingerprint (SHA-256 over DER SubjectPublicKeyInfo): `f1c3845a538c953bea0534a7de90acebfc03212cc6f3e7a350deb70ebbbb14d7`.
+- Proof of private-key possession: **PENDING**.
+- Independent binding of this key to the Primary signer identity/role: **PENDING**.
+- Trusted for 5-of-5 authorization: **NO** until both pending checks are satisfied.
+
+The PEM is public material. No private key was received or stored. Do not treat successful PEM parsing as proof that the submitter controls the corresponding private key.
