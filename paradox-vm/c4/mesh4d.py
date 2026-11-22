@@ -139,6 +139,14 @@ class ParadoxMesh4D:
                       "evidence_ref":link.evidence_ref})
         return link.link_id
 
+    def contains_node(self, address: MeshAddress) -> bool:
+        return address in self._nodes
+
+    def _edge_authorized(self, a: MeshAddress, b: MeshAddress) -> bool:
+        return any(link.authorized and link.verified and
+                   ((link.a == a and link.b == b) or (link.a == b and link.b == a))
+                   for link in self._links.values())
+
     def route(self, source: MeshAddress, destination: MeshAddress):
         """Return shortest deterministic path, or None if no authorized path exists."""
         if source not in self._nodes or destination not in self._nodes: return None
@@ -147,7 +155,7 @@ class ParadoxMesh4D:
         while queue:
             current = queue.popleft()
             for nxt in sorted(self._adj[current], key=lambda n: (n.space_id,n.coordinates,n.path)):
-                if nxt in previous: continue
+                if nxt in previous or not self._edge_authorized(current, nxt): continue
                 previous[nxt] = current
                 if nxt == destination:
                     path = [destination]

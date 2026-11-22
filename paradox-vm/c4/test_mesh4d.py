@@ -40,6 +40,10 @@ class Mesh4DTests(unittest.TestCase):
         mesh.add_link(MeshLink(a1,b,"bridge-A-B",True,True,"ev-bridge"))
         mesh.add_link(MeshLink(b,b1,"intra-B",True,True,"ev-B"))
         self.assertEqual(mesh.route(a,b1),(a,a1,b,b1))
+    def test_unverified_same_space_link_is_not_routable(self):
+        a=MeshAddress("A",0,0,0,0); b=a.neighbour("x+")
+        mesh=ParadoxMesh4D(); mesh.add_link(MeshLink(a,b,"unverified",False,False,"evidence"))
+        self.assertIsNone(mesh.route(a,b))
     def test_no_route_without_bridge(self):
         a=MeshAddress("A",0,0,0,0); b=MeshAddress("B",0,0,0,0)
         mesh=ParadoxMesh4D()

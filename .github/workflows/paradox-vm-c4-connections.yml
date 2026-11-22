@@ -1,0 +1,21 @@
+name: Paradox VM C4 Secure Connections
+on:
+  push:
+    branches: [main, feat/der-multiauth-cdp-adapter, feat/c4-secure-mesh-connections]
+    paths: ["paradox-vm/c4/**", ".github/workflows/paradox-vm-c4-connections.yml"]
+  pull_request:
+    paths: ["paradox-vm/c4/**", ".github/workflows/paradox-vm-c4-connections.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  secure-connections:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run C4 topology and transport tests
+        working-directory: paradox-vm/c4
+        run: python -m unittest -v
