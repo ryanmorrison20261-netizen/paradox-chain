@@ -41,8 +41,10 @@ class TestInfinite343(unittest.TestCase):
                          self.vm.address((1,2,3),4,(5,6)).stable_id)
         self.assertNotEqual(self.vm.address().stable_id,self.vm.address(cell=1).stable_id)
     def test_invalid_coordinates_rejected(self):
-        for args in [((-1,0,0),0,()),((0,0),0,()),((0,0,0),9,()),((0,0,0),0,(343,))]:
+        for args in [((0,0),0,()),((0,0,0),9,()),((0,0,0),0,(343,))]:
             with self.assertRaises(ValueError): self.vm.address(*args)
+    def test_negative_block_coordinates_are_valid_in_infinite_lattice(self):
+        self.assertEqual(self.vm.address((-1,0,0)).block.x, -1)
     def test_manifest_describes_lazy_model(self):
         m=self.vm.manifest(self.vm.address())
         self.assertEqual(m["children_per_node"],343)
