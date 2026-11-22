@@ -29,14 +29,14 @@ class RequestEnvelope:
         method = self.method.upper()
         if not method.isascii() or not method.isalpha():
             raise AuthError("invalid HTTP method")
-        if not self.path.startswith("/") or "\\n" in self.path:
+        if not self.path.startswith("/") or "\n" in self.path:
             raise AuthError("invalid request path")
         if not self.nonce or len(self.nonce) > 128 or any(
             c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" for c in self.nonce
         ):
             raise AuthError("invalid nonce")
         body_hash = hashlib.sha256(self.body).hexdigest()
-        return f"PARADOX-REQ-v1\\n{method}\\n{self.path}\\n{self.timestamp}\\n{self.nonce}\\n{body_hash}".encode("ascii")
+        return f"PARADOX-REQ-v1\n{method}\n{self.path}\n{self.timestamp}\n{self.nonce}\n{body_hash}".encode("ascii")
 
 class NonceStore:
     """Thread-safe process-local replay guard.
