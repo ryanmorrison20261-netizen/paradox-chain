@@ -128,6 +128,8 @@ class MeshConnectionManager:
     def __init__(self, local, trusted_peers, *, enabled=False, replay_cache=None, timeout=5.0, max_frame_bytes=MAX_FRAME_BYTES):
         if not isinstance(local, PeerIdentity): raise TypeError("local identity required")
         if local.node_id in trusted_peers: raise ValueError("local node cannot be a remote peer")
+        if any(not isinstance(v, PeerIdentity) or k != v.node_id for k, v in trusted_peers.items()):
+            raise ValueError("trusted peer registry keys must equal PeerIdentity.node_id")
         if not 0 < timeout <= 60: raise ValueError("timeout must be in (0, 60]")
         self.local, self.trusted_peers, self.enabled = local, dict(trusted_peers), bool(enabled)
         self.replay_cache = replay_cache or ReplayCache()
