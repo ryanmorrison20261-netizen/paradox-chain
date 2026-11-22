@@ -125,7 +125,7 @@ def save_state(path, world):
     envelope={"state":payload,"sha256":sha256(canonical).hexdigest()}
     target=Path(path); target.parent.mkdir(parents=True,exist_ok=True)
     temp=target.with_suffix(target.suffix+".tmp")
-    temp.write_text(json.dumps(envelope,sort_keys=True,indent=2)+"\\n",encoding="utf-8")
+    temp.write_text(json.dumps(envelope,sort_keys=True,indent=2)+"\n",encoding="utf-8")
     temp.replace(target)
     return envelope["sha256"]
 
