@@ -35,6 +35,13 @@ class TestC2(unittest.TestCase):
         self.assertEqual(w.snapshot()["position_m"],["6","0","0"])
         self.assertEqual(w.snapshot()["velocity_mps"],["5","0","0"])
         self.assertEqual(w.snapshot()["time_s"],"2")
+    def test_timed_step_collision_rejected_atomically(self):
+        box=AABB.from_values("wall",("2","-1","-1"),("3","1","1"))
+        w=World3D(obstacles=(box,)); w.set_kinematics(("2","0","0"),("0","0","0"))
+        with self.assertRaisesRegex(ValueError,"collision"): w.step("2")
+        self.assertEqual(w.snapshot()["position_m"],["0","0","0"])
+        self.assertEqual(w.snapshot()["time_s"],"0")
+        self.assertEqual(w.snapshot()["event_count"],0)
     def test_nonpositive_dt_rejected(self):
         w=World3D()
         for dt in ("0","-1"):
