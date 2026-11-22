@@ -1,0 +1,21 @@
+name: Paradox VM C2
+on:
+  push:
+    branches: [main, feat/der-multiauth-cdp-adapter]
+    paths: ["paradox-vm/c2/**", ".github/workflows/paradox-vm-c2.yml"]
+  pull_request:
+    paths: ["paradox-vm/c2/**", ".github/workflows/paradox-vm-c2.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  c2-3d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run C2 test suite
+        working-directory: paradox-vm/c2
+        run: python -m unittest -v
