@@ -6,7 +6,7 @@ It verifies an application-level request envelope before a separately configured
 from __future__ import annotations
 import hashlib, threading, time
 from dataclasses import dataclass
-from typing import Mapping, Sequence
+from typing import Mapping
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -29,38 +29,46 @@ class RequestEnvelope:
         method = self.method.upper()
         if not method.isascii() or not method.isalpha():
             raise AuthError("invalid HTTP method")
-        if not self.path.startswith("/") or "\n" in self.path:
+        if not self.path.startswith("/") or "\n" in self.path or "\r" in self.path:
             raise AuthError("invalid request path")
-        if not self.nonce or len(self.nonce) > 128 or any(
-            c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_" for c in self.nonce
-        ):
-            raise AuthError("invalid nonce")
+        if (not isinstance(self.timestamp, int) or isinstance(self.timestamp, bool)
+                or self.timestamp < 0):
+            raise AuthError("invalid request timestamp")
+        if (not isinstance(self.nonce, str) or not (16 <= len(self.nonce) <= 128)
+                or not self.nonce.isascii() or any(
+                    c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+                    for c in self.nonce
+                )):
+            raise AuthError("nonce must be 16 to 128 URL-safe ASCII characters")
+        if not isinstance(self.body, bytes):
+            raise AuthError("request body must be bytes")
         body_hash = hashlib.sha256(self.body).hexdigest()
         return f"PARADOX-REQ-v1\n{method}\n{self.path}\n{self.timestamp}\n{self.nonce}\n{body_hash}".encode("ascii")
 
 class NonceStore:
-    """Thread-safe process-local replay guard.
+    """Thread-safe process-local, request-wide replay guard.
 
     Production multi-worker deployments MUST replace this with a shared atomic store
     (for example Redis SET NX with expiry); this in-memory implementation is for tests
-    and single-process deployments only.
+    and single-process deployments only. A nonce is consumed globally, not per signer.
     """
     def __init__(self):
         self._seen = {}
         self._lock = threading.Lock()
 
-    def consume_many(self, signers: Sequence[str], nonce: str, expires_at: int, now: int) -> bool:
-        keys = [(signer, nonce) for signer in signers]
+    def consume(self, nonce: str, expires_at: int, now: int) -> bool:
         with self._lock:
-            self._seen = {k: v for k, v in self._seen.items() if v >= now}
-            if any(k in self._seen for k in keys):
+            self._seen = {key: expiry for key, expiry in self._seen.items() if expiry >= now}
+            if nonce in self._seen:
                 return False
-            for key in keys:
-                self._seen[key] = expires_at
+            self._seen[nonce] = expires_at
             return True
 
 def load_secp256k1_public_key(pem: bytes):
-    key = serialization.load_pem_public_key(pem)
+    try:
+        key = serialization.load_pem_public_key(pem)
+    except (TypeError, ValueError) as exc:
+        raise AuthError("invalid signer public key") from exc
     if not isinstance(key, ec.EllipticCurvePublicKey) or key.curve.name != "secp256k1":
         raise AuthError("signer key must be secp256k1")
     return key
@@ -90,24 +98,38 @@ def verify_threshold(
     now: int | None = None,
     max_skew_seconds: int = 300,
 ) -> tuple[bool, list[str]]:
-    """Verify distinct configured signers, then atomically consume nonce on threshold success."""
+    """Verify distinct configured signers, then atomically consume one request nonce."""
     now = int(time.time()) if now is None else int(now)
     if not 1 <= threshold <= len(trusted_keys):
         raise AuthError("threshold outside signer set")
+    if not isinstance(max_skew_seconds, int) or max_skew_seconds < 0:
+        raise AuthError("max_skew_seconds must be a non-negative integer")
     if abs(now - envelope.timestamp) > max_skew_seconds:
         raise AuthError("request timestamp outside allowed window")
+    unexpected = set(signatures) - set(trusted_keys)
+    if unexpected:
+        raise AuthError(f"untrusted signer identities: {sorted(unexpected)}")
+
     message = envelope.message()
-    accepted = []
-    for signer, signature in signatures.items():
-        if signer not in trusted_keys:
-            continue
-        public_key = load_secp256k1_public_key(trusted_keys[signer])
-        if verify_der_signature(public_key, message, signature):
-            accepted.append(signer)
+    loaded = {name: load_secp256k1_public_key(pem) for name, pem in trusted_keys.items()}
+    fingerprints = {
+        name: hashlib.sha256(key.public_bytes(
+            serialization.Encoding.DER,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )).hexdigest()
+        for name, key in loaded.items()
+    }
+    if len(set(fingerprints.values())) != len(loaded):
+        raise AuthError("duplicate trusted public key: each signer identity must have a distinct key")
+
+    accepted = [
+        signer for signer, signature in signatures.items()
+        if verify_der_signature(loaded[signer], message, signature)
+    ]
     if len(accepted) < threshold:
         return False, accepted
-    if not nonce_store.consume_many(
-        accepted, envelope.nonce, envelope.timestamp + max_skew_seconds, now
+    if not nonce_store.consume(
+        envelope.nonce, envelope.timestamp + max_skew_seconds, now
     ):
         raise AuthError("replayed request nonce")
     return True, accepted
