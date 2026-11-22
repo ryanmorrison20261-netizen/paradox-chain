@@ -175,6 +175,8 @@ def verify_five_party_certificate(
             "signer": name,
             "public_key_fingerprint_sha256": fingerprints[name],
             "signature_format": "ASN.1 DER ECDSA/secp256k1/SHA-256",
+            "signature_der_hex": signatures[name].hex(),
+            "signature_sha256": hashlib.sha256(signatures[name]).hexdigest(),
             "valid": valid,
         })
     if not all(item["valid"] for item in results):
