@@ -83,5 +83,55 @@
     "live_api_tested": false,
     "live_financial_operations_enabled": false,
     "status": "READ_ONLY_OR_DISABLED"
+  },
+  "verification_passes": [
+    {
+      "stage": "STAGE_1_AUTOMATED_TEST_PASS",
+      "status": "PASS",
+      "workflow_run_id": 44982760202,
+      "workflow_run_number": 30,
+      "job_id": 137086659436,
+      "conclusion": "success",
+      "tests_run": 30,
+      "tests_failed": 0,
+      "runtime": "Python 3.12",
+      "cryptography_version": "50.0.2",
+      "evidence_url": "https://github.com/ryanmorrison20261-netizen/paradox-chain/actions/runs/44982760202"
+    },
+    {
+      "stage": "STAGE_2_SECURITY_AND_INTEGRATION_REVIEW",
+      "status": "PASS_WITH_EXTERNAL_GATES_BLOCKED",
+      "checks": [
+        "Five-party verifier requires exactly five signer identities and five signatures",
+        "Distinct secp256k1 public-key fingerprints enforced",
+        "DER canonical round-trip and ECDSA scalar range checks enforced",
+        "Evidence digest, protocol, nonce, and timestamp are bound into signing message",
+        "Timestamp freshness and transactional replay protection enforced",
+        "Failed signatures do not consume replay nonce",
+        "Coinbase wallet and Advanced Trade adapters remain disabled by default and tests exercise read-only behavior"
+      ],
+      "external_blockers": [
+        "Primary identity/role binding has not been independently established",
+        "Four additional independently authenticated signer keys and signatures have not been supplied",
+        "No production 5-of-5 certificate may be issued from ephemeral unit-test keys"
+      ],
+      "scope_limits": [
+        "No live Coinbase API credentials or live API calls tested",
+        "No financial operations authorized",
+        "No merge or deployment performed"
+      ]
+    }
+  ],
+  "next_stage": {
+    "stage": "FINAL_5_OF_5_CERTIFICATION",
+    "status": "BLOCKED_WAITING_FOR_FIVE_REAL_AUTHENTICATED_SIGNER_APPROVALS",
+    "required": [
+      "Primary role-binding evidence",
+      "o2 public key, role-binding evidence, signature",
+      "Guardian public key, role-binding evidence, signature",
+      "chain_auditor public key, role-binding evidence, signature",
+      "adversarial_auditor public key, role-binding evidence, signature"
+    ],
+    "note": "Create a fresh shared evidence envelope only after the evidence snapshot is frozen; all five signers must sign exactly the same message."
   }
 }
