@@ -1,4 +1,4 @@
-name: Paradox VM C5 Meta Anchors
+name: Paradox VM C5 S7 Durable Recovery
 on:
   push:
     paths:
