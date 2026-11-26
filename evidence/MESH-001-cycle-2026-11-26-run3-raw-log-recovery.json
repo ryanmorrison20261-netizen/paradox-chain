@@ -1,0 +1,35 @@
+{
+  "schema": "mesh001-cycle-log-recovery/v3",
+  "observed_at_utc": "2026-11-26T02:24:23.306Z",
+  "failed_job_steps_and_logs": [
+    {
+      "job_id": 138925779655,
+      "steps": [],
+      "log_error": "NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: ﻿<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The specified blob does not exist.\nRequestId:fe63baf5-801e-001c-3b4d-7d1d0a000000\nTime:2026-11-26T02:24:23.2653641Z</Message></Error>"
+    },
+    {
+      "job_id": 138925788237,
+      "steps": [],
+      "log_error": "NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: ﻿<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The specified blob does not exist.\nRequestId:fd487d87-301e-0099-304d-7d25a2000000\nTime:2026-11-26T02:24:23.1186319Z</Message></Error>"
+    },
+    {
+      "job_id": 138925801879,
+      "steps": [],
+      "log_error": "NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: ﻿<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The specified blob does not exist.\nRequestId:5e74d10f-a01e-00c4-0b4d-7db427000000\nTime:2026-11-26T02:24:23.0625703Z</Message></Error>"
+    }
+  ],
+  "failed_run_artifacts": [
+    {
+      "run_id": 44975900516,
+      "artifacts": []
+    },
+    {
+      "run_id": 44975900472,
+      "artifacts": []
+    },
+    {
+      "run_id": 44975896194,
+      "artifacts": []
+    }
+  ]
+}
