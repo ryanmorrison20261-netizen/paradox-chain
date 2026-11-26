@@ -1,0 +1,245 @@
+{
+  "schema": "mesh001-cycle-repository-snapshot/v3",
+  "observed_at_utc": "2026-11-26T02:23:24.350Z",
+  "branch_inventory": [
+    {
+      "repository": "metaparadox-site",
+      "raw_response": "[{\"name\":\"add-branding-assets\",\"commit\":{\"sha\":\"8944ebe174d07a577b26c062a16415a9b660a4b3\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/metaparadox-site/commits/8944ebe174d07a577b26c062a16415a9b660a4b3\"},\"protected\":false},{\"name\":\"feat/meta-continuum-ecosystem\",\"commit\":{\"sha\":\"b703031b1b3f68e7f1213482370a4b493247e74b\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/metaparadox-site/commits/b703031b1b3f68e7f1213482370a4b493247e74b\"},\"protected\":false},{\"name\":\"feat/meta-continuum-foundation\",\"commit\":{\"sha\":\"97009279c0a55330bd052a6d909903308179fe2b\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/metaparadox-site/commits/97009279c0a55330bd052a6d909903308179fe2b\"},\"protected\":false},{\"name\":\"main\",\"commit\":{\"sha\":\"e73f002c4d37b547ab74de4c01a2ea7ee057881b\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/metaparadox-site/commits/e73f002c4d37b547ab74de4c01a2ea7ee057881b\"},\"protected\":false},{\"name\":\"paradox-evolutionary-factory\",\"commit\":{\"sha\":\"9b452f7c9ca8118ea1e78e0ff236303df28cf545\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/metaparadox-site/commits/9b452f7c9ca8118ea1e78e0ff236303df28cf545\"},\"protected\":false}]",
+      "branches": [
+        {
+          "name": "add-branding-assets",
+          "commit_sha": "8944ebe174d07a577b26c062a16415a9b660a4b3",
+          "protected": false
+        },
+        {
+          "name": "feat/meta-continuum-ecosystem",
+          "commit_sha": "b703031b1b3f68e7f1213482370a4b493247e74b",
+          "protected": false
+        },
+        {
+          "name": "feat/meta-continuum-foundation",
+          "commit_sha": "97009279c0a55330bd052a6d909903308179fe2b",
+          "protected": false
+        },
+        {
+          "name": "main",
+          "commit_sha": "e73f002c4d37b547ab74de4c01a2ea7ee057881b",
+          "protected": false
+        },
+        {
+          "name": "paradox-evolutionary-factory",
+          "commit_sha": "9b452f7c9ca8118ea1e78e0ff236303df28cf545",
+          "protected": false
+        }
+      ]
+    },
+    {
+      "repository": "hackerai2",
+      "raw_response": "[{\"name\":\"fix/local-auth-loopback-binding\",\"commit\":{\"sha\":\"a6d63ccf2dc77cba2095ea95672be1ef3397e641\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/hackerai2/commits/a6d63ccf2dc77cba2095ea95672be1ef3397e641\"},\"protected\":false},{\"name\":\"local/brain-bridge-offline\",\"commit\":{\"sha\":\"b7c500ff335740d37d9860966b8c2cc7b0b5d267\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/hackerai2/commits/b7c500ff335740d37d9860966b8c2cc7b0b5d267\"},\"protected\":false},{\"name\":\"main\",\"commit\":{\"sha\":\"b2d2f612c8066ec6e0be2b1f11db47151725fe74\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/hackerai2/commits/b2d2f612c8066ec6e0be2b1f11db47151725fe74\"},\"protected\":false}]",
+      "branches": [
+        {
+          "name": "fix/local-auth-loopback-binding",
+          "commit_sha": "a6d63ccf2dc77cba2095ea95672be1ef3397e641",
+          "protected": false
+        },
+        {
+          "name": "local/brain-bridge-offline",
+          "commit_sha": "b7c500ff335740d37d9860966b8c2cc7b0b5d267",
+          "protected": false
+        },
+        {
+          "name": "main",
+          "commit_sha": "b2d2f612c8066ec6e0be2b1f11db47151725fe74",
+          "protected": false
+        }
+      ]
+    },
+    {
+      "repository": "paradox-mini",
+      "raw_response": "[{\"name\":\"main\",\"commit\":{\"sha\":\"8b434acaf0b0a0d6856ba66ec32cf20c1a47f1ce\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-mini/commits/8b434acaf0b0a0d6856ba66ec32cf20c1a47f1ce\"},\"protected\":false}]",
+      "branches": [
+        {
+          "name": "main",
+          "commit_sha": "8b434acaf0b0a0d6856ba66ec32cf20c1a47f1ce",
+          "protected": false
+        }
+      ]
+    },
+    {
+      "repository": "paradox-os-vm",
+      "raw_response": "[{\"name\":\"ci/circleci-paradox-vm\",\"commit\":{\"sha\":\"19b7482b689ff5a313301a927ab35ddbf3732512\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/19b7482b689ff5a313301a927ab35ddbf3732512\"},\"protected\":false},{\"name\":\"claude/am-handoff-on5e22\",\"commit\":{\"sha\":\"04954f96b51339490bc4d03fd33108146f6a957d\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/04954f96b51339490bc4d03fd33108146f6a957d\"},\"protected\":false},{\"name\":\"docs/bitcoin-and-the-paradox-effect\",\"commit\":{\"sha\":\"d76af02129dc457bfb744cc82e1bf65cc568ea53\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/d76af02129dc457bfb744cc82e1bf65cc568ea53\"},\"protected\":false},{\"name\":\"feature/aurelion-wiki-atlas\",\"commit\":{\"sha\":\"549d35dc13a9a78b0ad6d02b92c431eb9484e93c\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/549d35dc13a9a78b0ad6d02b92c431eb9484e93c\"},\"protected\":false},{\"name\":\"feature/meta-guardian-unified-audit\",\"commit\":{\"sha\":\"ec97af6ec092503c49ec477cbfe1b7a6f0306233\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/ec97af6ec092503c49ec477cbfe1b7a6f0306233\"},\"protected\":false},{\"name\":\"feature/meta-mesh-lightning-foundry\",\"commit\":{\"sha\":\"1b62bac308742a121b185167e7ebddca8ad70300\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/1b62bac308742a121b185167e7ebddca8ad70300\"},\"protected\":false},{\"name\":\"feature/paradox-agent-control-plane\",\"commit\":{\"sha\":\"8e652b086c0a0b9fbf73ecfadc50c50754e4783c\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/8e652b086c0a0b9fbf73ecfadc50c50754e4783c\"},\"protected\":false},{\"name\":\"feature/telegram-lucky7-intelligence\",\"commit\":{\"sha\":\"da527bc3460d471daa1bc3f2a922821e67ba3d79\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/da527bc3460d471daa1bc3f2a922821e67ba3d79\"},\"protected\":false},{\"name\":\"main\",\"commit\":{\"sha\":\"ec97af6ec092503c49ec477cbfe1b7a6f0306233\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/ec97af6ec092503c49ec477cbfe1b7a6f0306233\"},\"protected\":false},{\"name\":\"meta-guardian/unified-readiness-v1\",\"commit\":{\"sha\":\"58f471535f6e9f90857e6a53c9099dd692145d76\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/58f471535f6e9f90857e6a53c9099dd692145d76\"},\"protected\":false},{\"name\":\"poc/owner-math-956-20261112\",\"commit\":{\"sha\":\"142e1e9523e3d54729611b4a981ebba7c600c913\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/142e1e9523e3d54729611b4a981ebba7c600c913\"},\"protected\":false},{\"name\":\"q49/security-asset-audit\",\"commit\":{\"sha\":\"fedb80f80d3290de64128bdb31dfb7cb2e163d82\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/fedb80f80d3290de64128bdb31dfb7cb2e163d82\"},\"protected\":false},{\"name\":\"q49/security-asset-audit-clean\",\"commit\":{\"sha\":\"4d2b91106b91066c68802b6315fc2282c19a5a22\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-os-vm/commits/4d2b91106b91066c68802b6315fc2282c19a5a22\"},\"protected\":false}]",
+      "branches": [
+        {
+          "name": "ci/circleci-paradox-vm",
+          "commit_sha": "19b7482b689ff5a313301a927ab35ddbf3732512",
+          "protected": false
+        },
+        {
+          "name": "claude/am-handoff-on5e22",
+          "commit_sha": "04954f96b51339490bc4d03fd33108146f6a957d",
+          "protected": false
+        },
+        {
+          "name": "docs/bitcoin-and-the-paradox-effect",
+          "commit_sha": "d76af02129dc457bfb744cc82e1bf65cc568ea53",
+          "protected": false
+        },
+        {
+          "name": "feature/aurelion-wiki-atlas",
+          "commit_sha": "549d35dc13a9a78b0ad6d02b92c431eb9484e93c",
+          "protected": false
+        },
+        {
+          "name": "feature/meta-guardian-unified-audit",
+          "commit_sha": "ec97af6ec092503c49ec477cbfe1b7a6f0306233",
+          "protected": false
+        },
+        {
+          "name": "feature/meta-mesh-lightning-foundry",
+          "commit_sha": "1b62bac308742a121b185167e7ebddca8ad70300",
+          "protected": false
+        },
+        {
+          "name": "feature/paradox-agent-control-plane",
+          "commit_sha": "8e652b086c0a0b9fbf73ecfadc50c50754e4783c",
+          "protected": false
+        },
+        {
+          "name": "feature/telegram-lucky7-intelligence",
+          "commit_sha": "da527bc3460d471daa1bc3f2a922821e67ba3d79",
+          "protected": false
+        },
+        {
+          "name": "main",
+          "commit_sha": "ec97af6ec092503c49ec477cbfe1b7a6f0306233",
+          "protected": false
+        },
+        {
+          "name": "meta-guardian/unified-readiness-v1",
+          "commit_sha": "58f471535f6e9f90857e6a53c9099dd692145d76",
+          "protected": false
+        },
+        {
+          "name": "poc/owner-math-956-20261112",
+          "commit_sha": "142e1e9523e3d54729611b4a981ebba7c600c913",
+          "protected": false
+        },
+        {
+          "name": "q49/security-asset-audit",
+          "commit_sha": "fedb80f80d3290de64128bdb31dfb7cb2e163d82",
+          "protected": false
+        },
+        {
+          "name": "q49/security-asset-audit-clean",
+          "commit_sha": "4d2b91106b91066c68802b6315fc2282c19a5a22",
+          "protected": false
+        }
+      ]
+    },
+    {
+      "repository": "paradox-identity",
+      "raw_response": "[{\"name\":\"feat/local-wallet-identity\",\"commit\":{\"sha\":\"d11c0eca25a5c16a9d0091d167a968efd3cc37fd\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-identity/commits/d11c0eca25a5c16a9d0091d167a968efd3cc37fd\"},\"protected\":false},{\"name\":\"main\",\"commit\":{\"sha\":\"4b9e6fb432014897f088d0ecce7f1b338bdc5638\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-identity/commits/4b9e6fb432014897f088d0ecce7f1b338bdc5638\"},\"protected\":false}]",
+      "branches": [
+        {
+          "name": "feat/local-wallet-identity",
+          "commit_sha": "d11c0eca25a5c16a9d0091d167a968efd3cc37fd",
+          "protected": false
+        },
+        {
+          "name": "main",
+          "commit_sha": "4b9e6fb432014897f088d0ecce7f1b338bdc5638",
+          "protected": false
+        }
+      ]
+    },
+    {
+      "repository": "paradox-chain",
+      "raw_response": "[{\"name\":\"audit/mesh-001-5x5-2026-11-24\",\"commit\":{\"sha\":\"d15641ac51dabd2872f968560f4a1d7fc816d654\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-chain/commits/d15641ac51dabd2872f968560f4a1d7fc816d654\"},\"protected\":false},{\"name\":\"feat/auvik-readonly-integration\",\"commit\":{\"sha\":\"b397c751e591aca2bd6b8e86b0c7f8e2b849c44d\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-chain/commits/b397c751e591aca2bd6b8e86b0c7f8e2b849c44d\"},\"protected\":false},{\"name\":\"feat/c4-secure-mesh-connections\",\"commit\":{\"sha\":\"02864828f2de7d8bbdd941bc4a489b4b6ef30a5e\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-chain/commits/02864828f2de7d8bbdd941bc4a489b4b6ef30a5e\"},\"protected\":false},{\"name\":\"feat/der-multiauth-cdp-adapter\",\"commit\":{\"sha\":\"36055371a45ac916018b384991c7190998bc2b9a\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-chain/commits/36055371a45ac916018b384991c7190998bc2b9a\"},\"protected\":false},{\"name\":\"feat/s7-durable-recovery\",\"commit\":{\"sha\":\"fe599fc8453286a0ba819de704069346aa1051a4\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-chain/commits/fe599fc8453286a0ba819de704069346aa1051a4\"},\"protected\":false},{\"name\":\"main\",\"commit\":{\"sha\":\"ce46629d214bb880a31b536735701b83c2837078\",\"url\":\"https://api.github.com/repos/ryanmorrison20261-netizen/paradox-chain/commits/ce46629d214bb880a31b536735701b83c2837078\"},\"protected\":false}]",
+      "branches": [
+        {
+          "name": "audit/mesh-001-5x5-2026-11-24",
+          "commit_sha": "d15641ac51dabd2872f968560f4a1d7fc816d654",
+          "protected": false
+        },
+        {
+          "name": "feat/auvik-readonly-integration",
+          "commit_sha": "b397c751e591aca2bd6b8e86b0c7f8e2b849c44d",
+          "protected": false
+        },
+        {
+          "name": "feat/c4-secure-mesh-connections",
+          "commit_sha": "02864828f2de7d8bbdd941bc4a489b4b6ef30a5e",
+          "protected": false
+        },
+        {
+          "name": "feat/der-multiauth-cdp-adapter",
+          "commit_sha": "36055371a45ac916018b384991c7190998bc2b9a",
+          "protected": false
+        },
+        {
+          "name": "feat/s7-durable-recovery",
+          "commit_sha": "fe599fc8453286a0ba819de704069346aa1051a4",
+          "protected": false
+        },
+        {
+          "name": "main",
+          "commit_sha": "ce46629d214bb880a31b536735701b83c2837078",
+          "protected": false
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "repositories": 6,
+    "branches": 30,
+    "protected": 0,
+    "unprotected": 30,
+    "unknown": 0
+  },
+  "pr6": {
+    "number": 6,
+    "url": "https://github.com/ryanmorrison20261-netizen/paradox-chain/pull/6",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "mergeable": true,
+    "base": "main",
+    "base_sha": "ce46629d214bb880a31b536735701b83c2837078",
+    "head": "audit/mesh-001-5x5-2026-11-24",
+    "head_sha": "d15641ac51dabd2872f968560f4a1d7fc816d654",
+    "updated_at": "2026-11-26T02:23:08Z"
+  },
+  "pr7": {
+    "number": 7,
+    "url": "https://github.com/ryanmorrison20261-netizen/paradox-os-vm/pull/7",
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "base": "q49/security-asset-audit-clean",
+    "base_sha": "4d2b91106b91066c68802b6315fc2282c19a5a22",
+    "head": "meta-guardian/unified-readiness-v1",
+    "head_sha": "58f471535f6e9f90857e6a53c9099dd692145d76",
+    "changed_files": [
+      ".github/workflows/meta-guardian.yml",
+      "docs/EVOLUTION_ENGINE_INFINITE_LOOP.md",
+      "docs/FULL_SYSTEM_SETUP_AND_ACCEPTANCE.md",
+      "docs/LAYER2_GROWTH_BIDIRECTIONAL.md",
+      "docs/LUCKY7_TIME_PROOF.md",
+      "docs/META_PARALLEL_MIRROR_PROOF.md",
+      "docs/NRE1_4D_MIRROR_CORE.md",
+      "tests/test_evolution_loop.py",
+      "tests/test_layer2_growth.py",
+      "tests/test_lucky7_timeproof.py",
+      "tests/test_meta_guardian.py",
+      "tests/test_meta_parallel_mirror.py",
+      "tests/test_nre1.py",
+      "tools/evolution_loop.py",
+      "tools/layer2_growth.py",
+      "tools/lucky7_timeproof.py",
+      "tools/meta_guardian.py",
+      "tools/meta_parallel_mirror.py",
+      "tools/nre1.py"
+    ]
+  },
+  "github_code_search_mh001_results": []
+}
