@@ -1,0 +1,386 @@
+{
+  "schema": "mesh001-cycle-ci-snapshot/v3",
+  "observed_at_utc": "2026-11-26T02:23:47.297Z",
+  "historical_successful_runs": [
+    {
+      "run_id": 44985863182,
+      "jobs": [
+        {
+          "id": 137096149002,
+          "name": "secure-connections",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 44985863182,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run C4 topology and transport tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 44985863188,
+      "jobs": [
+        {
+          "id": 137096148962,
+          "name": "mesh4d",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 44985863188,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run 4D mesh tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 44986200750,
+      "jobs": [
+        {
+          "id": 137097193698,
+          "name": "test",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 44986200750,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run python -m unittest -v",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 44985301492,
+      "jobs": [
+        {
+          "id": 137094466181,
+          "name": "python-tests",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 44985301492,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run python -m pip install --upgrade pip",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run python -m pip install cryptography",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Run DER and Coinbase adapter tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "failed_runs": [
+    {
+      "id": 44975900516,
+      "name": "Q49 Security and Asset Audit",
+      "path": ".github/workflows/q49-security-audit.yml",
+      "head_branch": "meta-guardian/unified-readiness-v1",
+      "head_sha": "58f471535f6e9f90857e6a53c9099dd692145d76",
+      "run_attempt": 3,
+      "status": "completed",
+      "conclusion": "failure",
+      "run_started_at": "2026-11-25T02:09:38Z",
+      "pull_requests": [
+        {
+          "number": 7,
+          "head": "meta-guardian/unified-readiness-v1",
+          "base": "q49/security-asset-audit-clean"
+        }
+      ]
+    },
+    {
+      "id": 44975900472,
+      "name": "Paradox VM — test on every addition",
+      "path": ".github/workflows/paradox-vm-tests.yml",
+      "head_branch": "meta-guardian/unified-readiness-v1",
+      "head_sha": "58f471535f6e9f90857e6a53c9099dd692145d76",
+      "run_attempt": 3,
+      "status": "completed",
+      "conclusion": "failure",
+      "run_started_at": "2026-11-25T02:09:39Z",
+      "pull_requests": [
+        {
+          "number": 7,
+          "head": "meta-guardian/unified-readiness-v1",
+          "base": "q49/security-asset-audit-clean"
+        }
+      ]
+    },
+    {
+      "id": 44975896194,
+      "name": "Meta Guardian — Unified Readiness",
+      "path": ".github/workflows/meta-guardian.yml",
+      "head_branch": "meta-guardian/unified-readiness-v1",
+      "head_sha": "58f471535f6e9f90857e6a53c9099dd692145d76",
+      "run_attempt": 3,
+      "status": "completed",
+      "conclusion": "failure",
+      "run_started_at": "2026-11-25T02:09:41Z",
+      "pull_requests": [
+        {
+          "number": 7,
+          "head": "meta-guardian/unified-readiness-v1",
+          "base": "q49/security-asset-audit-clean"
+        }
+      ]
+    }
+  ],
+  "failed_job_metadata": [
+    {
+      "run_id": 44975900516,
+      "jobs": [
+        {
+          "id": 138925779655,
+          "name": "openssl-upstream-source-build",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_id": 44975900516,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 138925779884,
+          "name": "q49-openssl-and-evidence",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_id": 44975900516,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "run_id": 44975900472,
+      "jobs": [
+        {
+          "id": 138925788237,
+          "name": "Installer tests and secret scan",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_id": 44975900472,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "run_id": 44975896194,
+      "jobs": [
+        {
+          "id": 138925801879,
+          "name": "readiness",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_id": 44975896194,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    }
+  ],
+  "failed_job_steps_and_logs": [
+    {
+      "job_id": 138925779655,
+      "steps": [],
+      "log_error": "NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: ﻿<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The specified blob does not exist.\nRequestId:67cee4a0-201e-0055-6c4d-7df81f000000\nTime:2026-11-26T02:23:47.0578226Z</Message></Error>"
+    },
+    {
+      "job_id": 138925788237,
+      "steps": [],
+      "log_error": "NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: ﻿<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The specified blob does not exist.\nRequestId:a9a1933c-301e-0102-654d-7dfbc8000000\nTime:2026-11-26T02:23:47.0683156Z</Message></Error>"
+    },
+    {
+      "job_id": 138925801879,
+      "steps": [],
+      "log_error": "NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: ﻿<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The specified blob does not exist.\nRequestId:8494f904-e01e-0007-574d-7d4c61000000\nTime:2026-11-26T02:23:47.2764252Z</Message></Error>"
+    }
+  ],
+  "failed_run_artifacts": [
+    {
+      "run_id": 44975900516,
+      "artifacts": []
+    },
+    {
+      "run_id": 44975900472,
+      "artifacts": []
+    },
+    {
+      "run_id": 44975896194,
+      "artifacts": []
+    }
+  ]
+}
